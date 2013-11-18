@@ -17,6 +17,8 @@ int main(int argc, char *argv[]) {
 
     print_array(y, nodecount);
 
+    int distances[nodecount*(nodecount-1)/2];
+
     return 0;
 }
 
@@ -25,4 +27,8 @@ void print_array(float array[], int length) {
     for(i = 0; i < length; i++) {
         printf("%f\n", array[i]);
     }
+}
+
+int get_index(int a, int b) {
+    return a*(a-1)/2+b;
 }
