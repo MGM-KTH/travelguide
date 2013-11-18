@@ -14,3 +14,11 @@ main
 *.lai
 *.la
 *.a
+
+# OS files
+.DS_Store
+
+# Sublime files
+*.sub
+*.subl
+*.sublime
