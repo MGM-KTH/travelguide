@@ -22,3 +22,11 @@ main
 *.sub
 *.subl
 *.sublime
+
+# Latex files
+*.out
+*.log
+*.aux
+*.fdb_latexmk
+*.pdf
+*.synctex.gz
