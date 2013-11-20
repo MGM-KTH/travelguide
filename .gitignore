@@ -30,3 +30,6 @@ main
 *.fdb_latexmk
 *.pdf
 *.synctex.gz
+
+# Plot project
+plottsp/*
