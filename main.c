@@ -83,11 +83,7 @@ int tsp(int distances[], int tour[], int nodecount) {
 
 void two_opt(int distances[], int *tour[], int nodecount) {
     // TODO: Implement 2-opt
-    int i;
-    int j;
-    int k;
-    int m;
-    int temp1;
+    int i, j, k, m, temp1;
     for(i = 0; i < nodecount-2; ++i) {
         for(j = nodecount-1; j > i+2; --j) {
             if(distances[get_index((*tour)[i],(*tour)[j-1])] + distances[get_index((*tour)[j],(*tour)[i+1])] <
