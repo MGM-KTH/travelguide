@@ -1,4 +1,8 @@
+#include <assert.h>
+#include <stdio.h>
+#include <math.h>
 #include "main.h"
+
 
 int main(int argc, char *argv[]) {
     int nodecount;
@@ -43,5 +47,16 @@ int distance(float x1, float y1, float x2, float y2) {
 }
 
 int get_index(int a, int b) {
+    // We do not store the trivial 0-distances x --> x
+    assert(a != b);
+    // We only store the distance in one direction, a --> b since it's
+    // Euclidean distances. i.e. a --> b = b --> a.
+    // Swap a and b if b > a.
+    if (b > a) {
+        temp = a;
+        a = b;
+        b = temp;
+    }
+    // Calculate the array index using the formula for summing the first x integers.
     return a*(a-1)/2+b;
 }
