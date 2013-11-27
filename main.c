@@ -24,9 +24,11 @@ int main(int argc, char *argv[]) {
 
 void print_array(float array[], int length) {
     int i;
-    for(i = 0; i < length; i++) {
-        printf("%f\n", array[i]);
+    printf("[%f", array[0]);
+    for(i = 1; i < length; i++) {
+        printf(", %f", array[i]);
     }
+    printf("]\n");
 }
 
 int get_index(int a, int b) {
