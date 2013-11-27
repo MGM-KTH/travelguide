@@ -7,7 +7,7 @@
 static int distance(float x1, float y1, float x2, float y2);
 static int get_index(int a, int b);
 int tsp(int distances[], int tour[], int nodecount);
-void two_opt(int distances[], int tour[], int nodecount);
+void two_opt(int distances[], int *tour[], int nodecount);
 
 
 int main(int argc, char *argv[]) {
@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     int tour[nodecount];
     int tourlength = tsp(distances, tour, nodecount);
 
-    fprintf(stdout,"Tourlength: %d\n", tourlength);
+    //fprintf(stdout,"Tourlength: %d\n", tourlength);
     print_tour(tour, nodecount);
 
     return 0;
@@ -74,12 +74,26 @@ int tsp(int distances[], int tour[], int nodecount) {
         tourlength += d;
         used[best] = 1;
     }
+    two_opt(distances, &tour, nodecount);
     return tourlength;
 }
 
-void two_opt(int distances[], int tour[], int nodecount) {
+void two_opt(int distances[], int *tour[], int nodecount) {
     // TODO: Implement 2-opt
-
+    int i;
+    int j;
+    int temp1;
+    for(i = 0; i < nodecount-2; ++i) {
+        for(j = i+3; j < nodecount; ++j) {
+            if(distances[get_index((*tour)[i],(*tour)[j-1])] + distances[get_index((*tour)[j],(*tour)[i+1])] >
+                    distances[get_index((*tour)[i],(*tour)[i+1])] + distances[get_index((*tour)[j-1],(*tour)[j])]) {
+                //printf("Swap %d-%d and %d-%d\n", i, i+1, j-1, j);
+                temp1 = (*tour)[i+1];
+                (*tour)[i+1] = (*tour)[j-1];
+                (*tour)[j-1] = temp1;
+            }
+        }
+    }
 }
 
 void print_farray(float array[], int length) {
