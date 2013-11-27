@@ -3,6 +3,10 @@
 #include <math.h>
 #include "main.h"
 
+/* Prototypes */
+static int distance(float x1, float y1, float x2, float y2);
+static int get_index(int a, int b);
+
 
 int main(int argc, char *argv[]) {
     int nodecount;
