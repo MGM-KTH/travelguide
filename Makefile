@@ -4,7 +4,7 @@ CFLAGS=-Wall
 all: main
 
 main: main.o
-	$(CC) $(CFLAGS) main.o -o main
+	$(CC) $(CFLAGS) main.o -o main -lm
 	rm *.o
 
 clean:

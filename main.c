@@ -31,6 +31,10 @@ void print_array(float array[], int length) {
     printf("]\n");
 }
 
+int distance(float x1, float y1, float x2, float y2) {
+    return floor(sqrt(pow(x1-x2, 2) + pow(y1-y2, 2)) + 0.5);
+}
+
 int get_index(int a, int b) {
     return a*(a-1)/2+b;
 }
