@@ -8,8 +8,9 @@ int main(int argc, char *argv[]) {
     float y[nodecount];
 
     int i;
+    int j;
 
-    for(i = 0; i < nodecount; i++) {
+    for(i = 0; i < nodecount; ++i) {
         scanf("%f %f", &x[i], &y[i]);
     }
 
@@ -18,6 +19,12 @@ int main(int argc, char *argv[]) {
     print_array(y, nodecount);
 
     int distances[nodecount*(nodecount-1)/2];
+
+    for(i = 0; i < nodecount; ++i) {
+        for(j = i+1; j < nodecount; ++j) {
+            distances[get_index(i,j)] = distance(x[i], y[i], x[j], y[j]);
+        }
+    }
 
     return 0;
 }
