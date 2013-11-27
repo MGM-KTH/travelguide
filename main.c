@@ -6,6 +6,8 @@
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
 static int get_index(int a, int b);
+void tsp(int distances[], int tour[], int nodecount);
+void two_opt(int distances[], int tour[], int nodecount);
 
 
 
@@ -42,6 +44,7 @@ int main(int argc, char *argv[]) {
     //print_diag_matrix(distances, nodecount);
 
     tsp(distances, tour, nodecount);
+
     print_tour(tour, nodecount);
 
     return 0;
@@ -68,6 +71,10 @@ void tsp(int distances[], int tour[], int nodecount) {
         tour[i] = best;
         used[best] = 1;
     }
+}
+
+void two_opt(int distances[], int tour[], int nodecount) {
+    // TODO: Implement 2-opt
 }
 
 void print_farray(float array[], int length) {
