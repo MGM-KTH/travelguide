@@ -15,6 +15,9 @@ int main(int argc, char *argv[]) {
     float x[nodecount];
     float y[nodecount];
 
+    int tour[nodecount];
+    int used[nodecount];
+
     int i;
     int j;
 
@@ -22,9 +25,9 @@ int main(int argc, char *argv[]) {
         scanf("%f %f", &x[i], &y[i]);
     }
 
-    print_farray(x, nodecount);
+    //print_farray(x, nodecount);
 
-    print_farray(y, nodecount);
+    //print_farray(y, nodecount);
 
     int distances_size = nodecount*(nodecount-1)/2;
     int distances[distances_size];
@@ -33,10 +36,30 @@ int main(int argc, char *argv[]) {
         for(j = i+1; j < nodecount; ++j) {
             distances[get_index(i,j)] = distance(x[i], y[i], x[j], y[j]);
         }
+
+        // Fill arrays with 0's
+        tour[i] = 0;
+        used[i] = 0;
     }
 
-    print_iarray(distances, distances_size);
-    print_diag_matrix(distances, nodecount);
+    //print_iarray(distances, distances_size);
+    //print_diag_matrix(distances, nodecount);
+
+    int best;
+    tour[0] = 0;
+    used[0] = 1;
+    for(i = 1; i < nodecount; ++i) {
+        best = -1;
+        for(j = 0; j < nodecount; ++j) {
+            if(used[j] == 0 && (best == -1 || distances[get_index(tour[i-1],j)] < distances[get_index(tour[i-1],best)])) {
+                best = j;
+            }
+        }
+        tour[i] = best;
+        used[best] = 1;
+    }
+
+    print_tour(tour, nodecount);
 
     return 0;
 }
@@ -53,10 +76,17 @@ void print_farray(float array[], int length) {
 void print_iarray(int array[], int length) {
     int i;
     printf("[%d", array[0]);
-    for(i = 1; i < length; i++) {
+    for(i = 1; i < length; ++i) {
         printf(", %d", array[i]);
     }
     printf("]\n");
+}
+
+void print_tour(int array[], int length) {
+    int i;
+    for(i = 0; i < length; ++i) {
+        printf("%d\n", array[i]);
+    }
 }
 
 void print_diag_matrix(int matrix[], int nodecount) {
