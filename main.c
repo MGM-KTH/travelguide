@@ -62,16 +62,19 @@ int tsp(int distances[], int tour[], int nodecount) {
     for(i = 1; i < nodecount; ++i) {
         best = -1;
         int d = 0;
+        int bestDistance = 10e7;
         for(j = 0; j < nodecount; ++j) {
             if(used[j] == 0) {
                 d = distances[get_index(tour[i-1],j)];
-                if (best == -1 || d < distances[get_index(tour[i-1],best)]) { 
+                if (best == -1 || d < bestDistance) {
                    best = j;
+                   bestDistance = d;
                 }
             }
         }
         tour[i] = best;
-        tourlength += d;
+        tourlength += bestDistance;
+        fprintf(stdout,"Added to tourlength: %d\n", bestDistance);
         used[best] = 1;
     }
     two_opt(distances, &tour, nodecount);
@@ -129,7 +132,8 @@ void print_diag_matrix(int matrix[], int nodecount) {
 }
 
 int distance(float x1, float y1, float x2, float y2) {
-    return floor(sqrt(pow(x1-x2, 2) + pow(y1-y2, 2)) + 0.5);
+    // return floor(sqrt(pow(x1-y1, 2) + pow(x2-y2,2)) + 0.5);
+    return nearbyintf(sqrt(pow(x1-x2,2) + pow(y1-y2,2)));
 }
 
 int get_index(int a, int b) {
