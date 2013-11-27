@@ -6,9 +6,8 @@
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
 static int get_index(int a, int b);
-void tsp(int distances[], int tour[], int nodecount);
+int tsp(int distances[], int tour[], int nodecount);
 void two_opt(int distances[], int tour[], int nodecount);
-
 
 
 int main(int argc, char *argv[]) {
@@ -17,9 +16,6 @@ int main(int argc, char *argv[]) {
 
     float x[nodecount];
     float y[nodecount];
-
-    int tour[nodecount];
-
     int i;
     int j;
 
@@ -39,21 +35,23 @@ int main(int argc, char *argv[]) {
             distances[get_index(i,j)] = distance(x[i], y[i], x[j], y[j]);
         }
     }
-
     //print_iarray(distances, distances_size);
     //print_diag_matrix(distances, nodecount);
 
-    tsp(distances, tour, nodecount);
+    int tour[nodecount];
+    int tourlength = tsp(distances, tour, nodecount);
 
+    fprintf(stdout,"Tourlength: %d\n", tourlength);
     print_tour(tour, nodecount);
 
     return 0;
 }
 
-void tsp(int distances[], int tour[], int nodecount) {
+int tsp(int distances[], int tour[], int nodecount) {
     int used[nodecount];
     int best;
     int i, j;
+    int tourlength = 0;
     tour[0] = 0;
     used[0] = 1;
     // Initialize used (visited) array
@@ -63,18 +61,25 @@ void tsp(int distances[], int tour[], int nodecount) {
     // Nearest neighbour
     for(i = 1; i < nodecount; ++i) {
         best = -1;
+        int d = 0;
         for(j = 0; j < nodecount; ++j) {
-            if(used[j] == 0 && (best == -1 || distances[get_index(tour[i-1],j)] < distances[get_index(tour[i-1],best)])) {
-                best = j;
+            if(used[j] == 0) {
+                d = distances[get_index(tour[i-1],j)];
+                if (best == -1 || d < distances[get_index(tour[i-1],best)]) { 
+                   best = j;
+                }
             }
         }
         tour[i] = best;
+        tourlength += d;
         used[best] = 1;
     }
+    return tourlength;
 }
 
 void two_opt(int distances[], int tour[], int nodecount) {
     // TODO: Implement 2-opt
+
 }
 
 void print_farray(float array[], int length) {
