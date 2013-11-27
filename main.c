@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     float y[nodecount];
     int i;
     int j;
-
+    // Read coordinates from stdin
     for(i = 0; i < nodecount; ++i) {
         scanf("%f %f", &x[i], &y[i]);
     }
@@ -30,8 +30,8 @@ int main(int argc, char *argv[]) {
     int distances[distances_size];
 
     // Calculate pairwise distances
-    for(i = 0; i < nodecount; ++i) {
-        for(j = i+1; j < nodecount; ++j) {
+    for(i = 1; i < nodecount; ++i) {
+        for(j = 0; j < i; ++j) {
             distances[get_index(i,j)] = distance(x[i], y[i], x[j], y[j]);
         }
     }
@@ -140,8 +140,8 @@ void print_diag_matrix(int matrix[], int nodecount) {
 }
 
 int distance(float x1, float y1, float x2, float y2) {
-    // return floor(sqrt(pow(x1-y1, 2) + pow(x2-y2,2)) + 0.5);
-    return nearbyintf(sqrt(pow(x1-x2,2) + pow(y1-y2,2)));
+    // return floor(sqrt(pow(x2-x1, 2) + pow(y2-y1,2)) + 0.5);
+    return nearbyintf(sqrt(pow(x2-x1,2) + pow(y2-y1,2)));
 }
 
 int get_index(int a, int b) {
