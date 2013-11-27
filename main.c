@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
         }
 
         // Fill arrays with 0's
+        // TODO: Do we need to initialize all of them?
         tour[i] = 0;
         used[i] = 0;
     }
