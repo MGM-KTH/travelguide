@@ -74,7 +74,7 @@ int tsp(int distances[], int tour[], int nodecount) {
         }
         tour[i] = best;
         tourlength += bestDistance;
-        fprintf(stdout,"Added to tourlength: %d\n", bestDistance);
+        //fprintf(stdout,"Added to tourlength: %d\n", bestDistance);
         used[best] = 1;
     }
     two_opt(distances, &tour, nodecount);
@@ -85,15 +85,23 @@ void two_opt(int distances[], int *tour[], int nodecount) {
     // TODO: Implement 2-opt
     int i;
     int j;
+    int k;
+    int m;
     int temp1;
     for(i = 0; i < nodecount-2; ++i) {
-        for(j = i+3; j < nodecount; ++j) {
-            if(distances[get_index((*tour)[i],(*tour)[j-1])] + distances[get_index((*tour)[j],(*tour)[i+1])] >
+        for(j = nodecount-1; j > i+2; --j) {
+            if(distances[get_index((*tour)[i],(*tour)[j-1])] + distances[get_index((*tour)[j],(*tour)[i+1])] <
                     distances[get_index((*tour)[i],(*tour)[i+1])] + distances[get_index((*tour)[j-1],(*tour)[j])]) {
                 //printf("Swap %d-%d and %d-%d\n", i, i+1, j-1, j);
-                temp1 = (*tour)[i+1];
-                (*tour)[i+1] = (*tour)[j-1];
-                (*tour)[j-1] = temp1;
+                //printf("distances %d+%d < %d+%d\n", distances[get_index((*tour)[i],(*tour)[j-1])], distances[get_index((*tour)[j],(*tour)[i+1])], distances[get_index((*tour)[i],(*tour)[i+1])], distances[get_index((*tour)[j-1],(*tour)[j])]);
+                m = j-1;
+                for(k = i+1; k < m; k++) {
+                    temp1 = (*tour)[k];
+                    (*tour)[k] = (*tour)[m];
+                    (*tour)[m] = temp1;
+                    --m;
+                }
+                //print_tour(*tour, nodecount);
             }
         }
     }
