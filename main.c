@@ -57,10 +57,8 @@ void print_iarray(int array[], int length) {
 
 void print_diag_matrix(int matrix[], int nodecount) {
     int i;
-    int j;
-    for(i = 0; i < nodecount-1; ++i) {
-        j += i;
-        print_iarray(&matrix[j], i);
+    for(i = 1; i < nodecount; ++i) {
+        print_iarray(&matrix[get_index(i, 0)], i);
     }
 }
 
