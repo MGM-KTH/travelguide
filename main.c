@@ -18,11 +18,12 @@ int main(int argc, char *argv[]) {
         scanf("%f %f", &x[i], &y[i]);
     }
 
-    print_array(x, nodecount);
+    print_farray(x, nodecount);
 
-    print_array(y, nodecount);
+    print_farray(y, nodecount);
 
-    int distances[nodecount*(nodecount-1)/2];
+    int distances_size = nodecount*(nodecount-1)/2;
+    int distances[distances_size];
 
     for(i = 0; i < nodecount; ++i) {
         for(j = i+1; j < nodecount; ++j) {
@@ -30,16 +31,37 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    print_iarray(distances, distances_size);
+    print_diag_matrix(distances, nodecount);
+
     return 0;
 }
 
-void print_array(float array[], int length) {
+void print_farray(float array[], int length) {
     int i;
     printf("[%f", array[0]);
     for(i = 1; i < length; i++) {
         printf(", %f", array[i]);
     }
     printf("]\n");
+}
+
+void print_iarray(int array[], int length) {
+    int i;
+    printf("[%d", array[0]);
+    for(i = 1; i < length; i++) {
+        printf(", %d", array[i]);
+    }
+    printf("]\n");
+}
+
+void print_diag_matrix(int matrix[], int nodecount) {
+    int i;
+    int j;
+    for(i = 0; i < nodecount-1; ++i) {
+        j += i;
+        print_iarray(&matrix[j], i);
+    }
 }
 
 int distance(float x1, float y1, float x2, float y2) {
@@ -53,7 +75,7 @@ int get_index(int a, int b) {
     // Euclidean distances. i.e. a --> b = b --> a.
     // Swap a and b if b > a.
     if (b > a) {
-        temp = a;
+        int temp = a;
         a = b;
         b = temp;
     }
