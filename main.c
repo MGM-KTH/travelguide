@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     float y[nodecount];
     int i;
     int j;
-
+    // Read coordinates from stdin
     for(i = 0; i < nodecount; ++i) {
         scanf("%f %f", &x[i], &y[i]);
     }
@@ -74,7 +74,7 @@ int tsp(int distances[], int tour[], int nodecount) {
         }
         tour[i] = best;
         tourlength += bestDistance;
-        fprintf(stdout,"Added to tourlength: %d\n", bestDistance);
+        // fprintf(stdout,"Added to tourlength: %d\n", bestDistance);
         used[best] = 1;
     }
     two_opt(distances, &tour, nodecount);
