@@ -8,6 +8,7 @@ static int distance(float x1, float y1, float x2, float y2);
 static int get_index(int a, int b);
 
 
+
 int main(int argc, char *argv[]) {
     int nodecount;
     scanf("%d", &nodecount);
@@ -16,7 +17,6 @@ int main(int argc, char *argv[]) {
     float y[nodecount];
 
     int tour[nodecount];
-    int used[nodecount];
 
     int i;
     int j;
@@ -26,29 +26,38 @@ int main(int argc, char *argv[]) {
     }
 
     //print_farray(x, nodecount);
-
     //print_farray(y, nodecount);
 
     int distances_size = nodecount*(nodecount-1)/2;
     int distances[distances_size];
 
+    // Calculate pairwise distances
     for(i = 0; i < nodecount; ++i) {
         for(j = i+1; j < nodecount; ++j) {
             distances[get_index(i,j)] = distance(x[i], y[i], x[j], y[j]);
         }
-
-        // Fill arrays with 0's
-        // TODO: Do we need to initialize all of them?
-        tour[i] = 0;
-        used[i] = 0;
     }
 
     //print_iarray(distances, distances_size);
     //print_diag_matrix(distances, nodecount);
 
+    tsp(distances, tour, nodecount);
+    print_tour(tour, nodecount);
+
+    return 0;
+}
+
+void tsp(int distances[], int tour[], int nodecount) {
+    int used[nodecount];
     int best;
+    int i, j;
     tour[0] = 0;
     used[0] = 1;
+    // Initialize used (visited) array
+    for (i = 1; i < nodecount; ++i) {
+        used[i] = 0;
+    }
+    // Nearest neighbour
     for(i = 1; i < nodecount; ++i) {
         best = -1;
         for(j = 0; j < nodecount; ++j) {
@@ -59,10 +68,6 @@ int main(int argc, char *argv[]) {
         tour[i] = best;
         used[best] = 1;
     }
-
-    print_tour(tour, nodecount);
-
-    return 0;
 }
 
 void print_farray(float array[], int length) {
