@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 int tsp(int distances[], int tour[], int nodecount) {
     int used[nodecount];
     int best;
-    int i, j;
+    int i, j, k;
     int tourlength = 0;
     tour[0] = 0;
     used[0] = 1;
@@ -77,7 +77,9 @@ int tsp(int distances[], int tour[], int nodecount) {
         //fprintf(stdout,"Added to tourlength: %d\n", bestDistance);
         used[best] = 1;
     }
-    two_opt(distances, tour, nodecount);
+    for(k = 0; k < 10; ++k) {
+        two_opt(distances, &tour, nodecount);
+    }
     return tourlength;
 }
 
