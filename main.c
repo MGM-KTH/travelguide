@@ -119,7 +119,7 @@ int tsp(int distances[], short tour[], int nodecount) {
         used[best] = 1;
     }
     for(k = 0; k < 7; ++k) {
-        //two_opt(distances, tour, nodecount);
+        two_opt(distances, tour, nodecount);
     }
     return tourlength;
 }
