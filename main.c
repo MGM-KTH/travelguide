@@ -11,36 +11,38 @@
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
 static int get_index(int a, int b);
-int tsp(int distances[], short tour[], int nodecount);
-void two_opt(int distances[], short tour[], int nodecount);
+int tsp(int dist[], short tour[], int N);
+void two_opt(int dist[], short tour[], int N);
+void two_point_five_opt(int dist[], short tour[], int N);
+void move_city(short tour[], int N, int a, int b, int c, int d, int e, int i, int j);
 
 
 int main(int argc, char *argv[]) {
     srand(time(NULL));
-    int nodecount;
-    scanf("%d", &nodecount);
+    int N;
+    scanf("%d", &N);
 
-    float x[nodecount];
-    float y[nodecount];
+    float x[N];
+    float y[N];
     int i, j, k;
     // Read coordinates from stdin
-    for(i = 0; i < nodecount; ++i) {
+    for(i = 0; i < N; ++i) {
         scanf("%f %f", &x[i], &y[i]);
     }
 
-    //print_farray(x, nodecount);
-    //print_farray(y, nodecount);
+    //print_farray(x, N);
+    //print_farray(y, N);
 
-    int distances_size = nodecount*(nodecount-1)/2;
-    int distances[distances_size];
+    int dist_size = N*(N-1)/2;
+    int dist[dist_size];
 
-    short neighbours[nodecount][NBURS];
+    short neighbours[N][NBURS];
     for(i = 0; i < NBURS; ++i) {
         neighbours[0][i] = -1;
     }
 
-    // Calculate pairwise distances
-    for(i = 1; i < nodecount; ++i) {
+    // Calculate pairwise dist
+    for(i = 1; i < N; ++i) {
 
         // Piggyback neighbour initialization
         for(j = 0; j < NBURS; ++j) {
@@ -48,25 +50,25 @@ int main(int argc, char *argv[]) {
         }
 
         for(j = 0; j < i; ++j) {
-            distances[get_index(i,j)] = distance(x[i], y[i], x[j], y[j]);
+            dist[get_index(i,j)] = distance(x[i], y[i], x[j], y[j]);
         }
     }
 
     // Calculate closest neighbours for every node. Lowest index is closest.
-    int dist, node, tmp;
-    for(i = 0; i < nodecount; ++i) {
-        for(j = 0; j < nodecount; ++j) {
+    int d, node, tmp;
+    for(i = 0; i < N; ++i) {
+        for(j = 0; j < N; ++j) {
             if(i != j) { // Don't check against self
                 node = j;
-                dist = distances[get_index(i, j)];
+                d = dist[get_index(i, j)];
                 for(k = 0; k < NBURS; ++k) {
                     if(neighbours[i][k]==-1) { // Spot is empty, use and break
                         neighbours[i][k] = node;
                         break;
-                    }else if(dist < distances[get_index(i,neighbours[i][k])]) {
+                    }else if(d < dist[get_index(i,neighbours[i][k])]) {
                         // Closer neighbour found! replace old naeighbour and try to move old neighbour to next spot
                         tmp = neighbours[i][k];
-                        dist = distances[get_index(i,neighbours[i][k])];
+                        d = dist[get_index(i,neighbours[i][k])];
                         neighbours[i][k] = node;
                         node = tmp;
                     }
@@ -76,41 +78,41 @@ int main(int argc, char *argv[]) {
     }
 
     /*
-    for(i = 0; i < nodecount; ++i) {
+    for(i = 0; i < N; ++i) {
         printf("%d ", i);
         print_sarray(neighbours[i], NBURS);
     }
     */
-    //print_diag_matrix(distances, nodecount);
+    //print_diag_matrix(dist, N);
 
-    short tour[nodecount];
-    int tourlength = tsp(distances, tour, nodecount);
+    short tour[N];
+    int tourlength = tsp(dist, tour, N);
 
     //fprintf(stdout,"Tourlength: %d\n", tourlength);
-    print_tour(tour, nodecount);
+    print_tour(tour, N);
 
     return 0;
 }
 
-int tsp(int distances[], short tour[], int nodecount) {
-    short used[nodecount];
+int tsp(int dist[], short tour[], int N) {
+    short used[N];
     short best;
     int i, j, k;
     int tourlength = 0;
     tour[0] = 0;
     used[0] = 1;
     // Initialize used (visited) array
-    for (i = 1; i < nodecount; ++i) {
+    for (i = 1; i < N; ++i) {
         used[i] = 0;
     }
     // Nearest neighbour
-    for(i = 1; i < nodecount; ++i) {
+    for(i = 1; i < N; ++i) {
         best = -1;
         int d = 0;
         int bestDistance = 10e7;
-        for(j = 0; j < nodecount; ++j) {
+        for(j = 0; j < N; ++j) {
             if(used[j] == 0) {
-                d = distances[get_index(tour[i-1],j)];
+                d = dist[get_index(tour[i-1],j)];
                 if (best == -1 || d < bestDistance) {
                    best = (short) j;
                    bestDistance = d;
@@ -123,38 +125,96 @@ int tsp(int distances[], short tour[], int nodecount) {
         used[best] = 1;
     }
     for(k = 0; k < 5; ++k) {
-        two_opt(distances, tour, nodecount);
+        two_opt(dist, tour, N);
     }
+    two_point_five_opt(dist, tour, N);
     return tourlength;
 }
 
-void two_opt(int distances[], short tour[], int nodecount) {
+void two_opt(int dist[], short tour[], int N) {
     // TODO: Implement 2-opt
     int i, j, k, m;
     short temp1;
 
 #ifdef RAND
-    int r = rand() % nodecount;
+    int r = rand() % N;
 #else
     int r = 0;
 #endif
 
-    for(i = r; i < nodecount-2+r; ++i) {
-        for(j = nodecount-1+r; j > i+2; --j) {
-            if(distances[get_index(tour[i%nodecount],tour[(j-1)%nodecount])] + distances[get_index(tour[j%nodecount],tour[(i+1)%nodecount])] <
-                    distances[get_index(tour[i%nodecount],tour[(i+1)%nodecount])] + distances[get_index(tour[(j-1)%nodecount],tour[j%nodecount])]) {
+    for(i = r; i < N-2+r; ++i) {
+        for(j = N-1+r; j > i+2; --j) {
+            if(dist[get_index(tour[i%N],tour[(j-1)%N])] + dist[get_index(tour[j%N],tour[(i+1)%N])] <
+                    dist[get_index(tour[i%N],tour[(i+1)%N])] + dist[get_index(tour[(j-1)%N],tour[j%N])]) {
                 //printf("Swap %d-%d and %d-%d\n", i, i+1, j-1, j);
-                //printf("distances %d+%d < %d+%d\n", distances[get_index(tour[i],tour[j-1])], distances[get_index(tour[j],tour[i+1])], distances[get_index(tour[i],tour[i+1])], distances[get_index(tour[j-1],tour[j])]);
+                //printf("dist %d+%d < %d+%d\n", dist[get_index(tour[i],tour[j-1])], dist[get_index(tour[j],tour[i+1])], dist[get_index(tour[i],tour[i+1])], dist[get_index(tour[j-1],tour[j])]);
                 m = j-1;
                 // TODO: Possibly fix a data structure that manages this (e.g. Satellite list)
                 for(k = i+1; k < m; k++) {
-                    temp1 = tour[k%nodecount];
-                    tour[k%nodecount] = tour[m%nodecount];
-                    tour[m%nodecount] = temp1;
+                    temp1 = tour[k%N];
+                    tour[k%N] = tour[m%N];
+                    tour[m%N] = temp1;
                     --m;
                 }
-                //print_tour(*tour, nodecount);
+                //print_tour(*tour, N);
             }
+        }
+    }
+}
+
+
+/* 2.5-opt */
+void two_point_five_opt(int dist[], short tour[], int N) {
+    int i,j;
+    int a, b, c, d, e;
+    int improvement = 1;
+    while(improvement) {
+        improvement = 0;
+        for(i = 0; i < (N-2); ++i) {
+            a = tour[i];
+            b = tour[i+1];
+            c = tour[i+2];
+            for (j = 0; j < (N-1); ++j) {
+                if (abs(i-j) <= 2)
+                    continue;
+                d = tour[j];
+                e = tour[j+1];
+                // fprintf(stdout, "a: %d, b: %d, c: %d, d: %d, e: %d, i: %d, j: %d\n", a,b,c,d,e, i, j);
+                if ((dist[get_index(a, b)] + dist[get_index(b, c)] + dist[get_index(d,e)]) > (dist[get_index(a,c)] + dist[get_index(d,b)] + dist[get_index(b,e)])) {
+                    move_city(tour,N,a,b,c,d,e,i,j);
+                    improvement = 1;
+                    i = 0;    // restart outer for-loop
+                    break;
+                }
+            }
+        }
+    }
+}
+
+/*
+ * Help function for two_point_five_opt.
+ * Changes the tour from a-b-c-d-e to a-c-d-b-e,
+ * moving b from between a and c to between d and e.
+ */
+void move_city(short tour[], int N, int a, int b, int c, int d, int e, int i, int j) {
+    int m, n, temp1, temp2;
+    if (i < j) {
+        // Shift the tour to the left, removing the old b
+        for(m = (i+2); m <= j; ++m) {
+            tour[m-1] = tour[m];
+        }
+        // insert new b between j and j+1
+        tour[j] = b; 
+    }
+    else if (i > j) {
+        // insert b after d
+        temp1 = e;
+        tour[j+1] = b;
+        // push to the right until old b, replacing it.
+        for(m = j+2; m <= (i + 1); ++m) {
+            temp2 = tour[m];
+            tour[m] = temp1;
+            temp1 = temp2;
         }
     }
 }
@@ -193,9 +253,9 @@ void print_tour(short array[], int length) {
     }
 }
 
-void print_diag_matrix(int matrix[], int nodecount) {
+void print_diag_matrix(int matrix[], int N) {
     int i;
-    for(i = 1; i < nodecount; ++i) {
+    for(i = 1; i < N; ++i) {
         print_iarray(&matrix[get_index(i, 0)], i);
     }
 }
@@ -206,10 +266,10 @@ int distance(float x1, float y1, float x2, float y2) {
 }
 
 int get_index(int a, int b) {
-    // We do not store the trivial 0-distances x --> x
+    // We do not store the trivial 0-distance x --> x
     assert(a != b);
     // We only store the distance in one direction, a --> b since it's
-    // Euclidean distances. i.e. a --> b = b --> a.
+    // Euclidean dist. i.e. a --> b = b --> a.
     // Swap a and b if b > a.
     if (b > a) {
         int temp = a;
