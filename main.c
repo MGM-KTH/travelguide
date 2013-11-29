@@ -11,10 +11,10 @@
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
 static int get_index(int a, int b);
-int tsp(int dist[], short tour[], int N);
+void tsp(int dist[], short tour[], int N);
 void two_opt(int dist[], short tour[], int N);
 void two_point_five_opt(int dist[], short tour[], int N);
-void move_city(short tour[], int N, int a, int b, int c, int d, int e, int i, int j);
+void move_city(short tour[], int N, int b, int e, int i, int j);
 
 
 int main(int argc, char *argv[]) {
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
     //print_diag_matrix(dist, N);
 
     short tour[N];
-    int tourlength = tsp(dist, tour, N);
+    tsp(dist, tour, N);
 
     //fprintf(stdout,"Tourlength: %d\n", tourlength);
     print_tour(tour, N);
@@ -94,11 +94,10 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-int tsp(int dist[], short tour[], int N) {
+void tsp(int dist[], short tour[], int N) {
     short used[N];
     short best;
     int i, j, k;
-    int tourlength = 0;
     tour[0] = 0;
     used[0] = 1;
     // Initialize used (visited) array
@@ -120,15 +119,12 @@ int tsp(int dist[], short tour[], int N) {
             }
         }
         tour[i] = best;
-        tourlength += bestDistance;
-        //fprintf(stdout,"Added to tourlength: %d\n", bestDistance);
         used[best] = 1;
     }
     for(k = 0; k < 5; ++k) {
         two_opt(dist, tour, N);
     }
     two_point_five_opt(dist, tour, N);
-    return tourlength;
 }
 
 void two_opt(int dist[], short tour[], int N) {
@@ -162,11 +158,9 @@ void two_opt(int dist[], short tour[], int N) {
     }
 }
 
-
 /* 2.5-opt */
 void two_point_five_opt(int dist[], short tour[], int N) {
-    int i,j;
-    int a, b, c, d, e;
+    int i, j, a, b, c, d, e;
     int improvement = 1;
     while(improvement) {
         improvement = 0;
@@ -181,7 +175,7 @@ void two_point_five_opt(int dist[], short tour[], int N) {
                 e = tour[j+1];
                 // fprintf(stdout, "a: %d, b: %d, c: %d, d: %d, e: %d, i: %d, j: %d\n", a,b,c,d,e, i, j);
                 if ((dist[get_index(a, b)] + dist[get_index(b, c)] + dist[get_index(d,e)]) > (dist[get_index(a,c)] + dist[get_index(d,b)] + dist[get_index(b,e)])) {
-                    move_city(tour,N,a,b,c,d,e,i,j);
+                    move_city(tour,N,b,e,i,j);
                     improvement = 1;
                     i = 0;    // restart outer for-loop
                     break;
@@ -196,8 +190,8 @@ void two_point_five_opt(int dist[], short tour[], int N) {
  * Changes the tour from a-b-c-d-e to a-c-d-b-e,
  * moving b from between a and c to between d and e.
  */
-void move_city(short tour[], int N, int a, int b, int c, int d, int e, int i, int j) {
-    int m, n, temp1, temp2;
+void move_city(short tour[], int N, int b, int e, int i, int j) {
+    int m, temp1, temp2;
     if (i < j) {
         // Shift the tour to the left, removing the old b
         for(m = (i+2); m <= j; ++m) {
