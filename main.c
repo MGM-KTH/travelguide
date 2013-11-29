@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
+#include <stdlib.h>
 #include "main.h"
 
 #define NBURS 5
@@ -13,6 +15,7 @@ void two_opt(int distances[], short tour[], int nodecount);
 
 
 int main(int argc, char *argv[]) {
+    srand(time(NULL));
     int nodecount;
     scanf("%d", &nodecount);
 
@@ -127,19 +130,20 @@ int tsp(int distances[], short tour[], int nodecount) {
 void two_opt(int distances[], short tour[], int nodecount) {
     // TODO: Implement 2-opt
     int i, j, k, m;
+    int r = rand() % nodecount;
     short temp1;
-    for(i = 0; i < nodecount-2; ++i) {
-        for(j = nodecount-1; j > i+2; --j) {
-            if(distances[get_index(tour[i],tour[j-1])] + distances[get_index(tour[j],tour[i+1])] <
-                    distances[get_index(tour[i],tour[i+1])] + distances[get_index(tour[j-1],tour[j])]) {
+    for(i = r; i < nodecount-2+r; ++i) {
+        for(j = nodecount-1+r; j > i+2; --j) {
+            if(distances[get_index(tour[i%nodecount],tour[(j-1)%nodecount])] + distances[get_index(tour[j%nodecount],tour[(i+1)%nodecount])] <
+                    distances[get_index(tour[i%nodecount],tour[(i+1)%nodecount])] + distances[get_index(tour[(j-1)%nodecount],tour[j%nodecount])]) {
                 //printf("Swap %d-%d and %d-%d\n", i, i+1, j-1, j);
                 //printf("distances %d+%d < %d+%d\n", distances[get_index(tour[i],tour[j-1])], distances[get_index(tour[j],tour[i+1])], distances[get_index(tour[i],tour[i+1])], distances[get_index(tour[j-1],tour[j])]);
                 m = j-1;
                 // TODO: Possibly fix a data structure that manages this (e.g. Satellite list)
                 for(k = i+1; k < m; k++) {
-                    temp1 = tour[k];
-                    tour[k] = tour[m];
-                    tour[m] = temp1;
+                    temp1 = tour[k%nodecount];
+                    tour[k%nodecount] = tour[m%nodecount];
+                    tour[m%nodecount] = temp1;
                     --m;
                 }
                 //print_tour(*tour, nodecount);
