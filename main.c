@@ -77,8 +77,8 @@ int tsp(int distances[], int tour[], int nodecount) {
         //fprintf(stdout,"Added to tourlength: %d\n", bestDistance);
         used[best] = 1;
     }
-    for(k = 0; k < 10; ++k) {
-        two_opt(distances, &tour, nodecount);
+    for(k = 0; k < 7; ++k) {
+        two_opt(distances, tour, nodecount);
     }
     return tourlength;
 }
