@@ -3,6 +3,8 @@
 #include <math.h>
 #include "main.h"
 
+#define NBURS 5
+
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
 static int get_index(int a, int b);
@@ -16,8 +18,7 @@ int main(int argc, char *argv[]) {
 
     float x[nodecount];
     float y[nodecount];
-    int i;
-    int j;
+    int i, j, k;
     // Read coordinates from stdin
     for(i = 0; i < nodecount; ++i) {
         scanf("%f %f", &x[i], &y[i]);
@@ -29,13 +30,53 @@ int main(int argc, char *argv[]) {
     int distances_size = nodecount*(nodecount-1)/2;
     int distances[distances_size];
 
+    short neighbours[nodecount][NBURS];
+    for(i = 0; i < NBURS; ++i) {
+        neighbours[0][i] = -1;
+    }
+
     // Calculate pairwise distances
     for(i = 1; i < nodecount; ++i) {
+
+        // Piggyback neighbour initialization
+        for(j = 0; j < NBURS; ++j) {
+            neighbours[i][j] = -1;
+        }
+
         for(j = 0; j < i; ++j) {
             distances[get_index(i,j)] = distance(x[i], y[i], x[j], y[j]);
         }
     }
-    //print_iarray(distances, distances_size);
+
+    // Calculate closest neighbours for every node. Lowest index is closest.
+    int dist, node, tmp;
+    for(i = 0; i < nodecount; ++i) {
+        for(j = 0; j < nodecount; ++j) {
+            if(i != j) { // Don't check against self
+                node = j;
+                dist = distances[get_index(i, j)];
+                for(k = 0; k < NBURS; ++k) {
+                    if(neighbours[i][k]==-1) { // Spot is empty, use and break
+                        neighbours[i][k] = node;
+                        break;
+                    }else if(dist < distances[get_index(i,neighbours[i][k])]) {
+                        // Closer neighbour found! replace old naeighbour and try to move old neighbour to next spot
+                        tmp = neighbours[i][k];
+                        dist = distances[get_index(i,neighbours[i][k])];
+                        neighbours[i][k] = node;
+                        node = tmp;
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+    for(i = 0; i < nodecount; ++i) {
+        printf("%d ", i);
+        print_sarray(neighbours[i], NBURS);
+    }
+    */
     //print_diag_matrix(distances, nodecount);
 
     short tour[nodecount];
@@ -78,7 +119,7 @@ int tsp(int distances[], short tour[], int nodecount) {
         used[best] = 1;
     }
     for(k = 0; k < 7; ++k) {
-        two_opt(distances, tour, nodecount);
+        //two_opt(distances, tour, nodecount);
     }
     return tourlength;
 }
@@ -117,6 +158,15 @@ void print_farray(float array[], int length) {
 }
 
 void print_iarray(int array[], int length) {
+    int i;
+    printf("[%d", array[0]);
+    for(i = 1; i < length; ++i) {
+        printf(", %d", array[i]);
+    }
+    printf("]\n");
+}
+
+void print_sarray(short array[], int length) {
     int i;
     printf("[%d", array[0]);
     for(i = 1; i < length; ++i) {
