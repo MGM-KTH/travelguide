@@ -6,8 +6,8 @@
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
 static int get_index(int a, int b);
-int tsp(int distances[], int tour[], int nodecount);
-void two_opt(int distances[], int tour[], int nodecount);
+int tsp(int distances[], short tour[], int nodecount);
+void two_opt(int distances[], short tour[], int nodecount);
 
 
 int main(int argc, char *argv[]) {
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
     //print_iarray(distances, distances_size);
     //print_diag_matrix(distances, nodecount);
 
-    int tour[nodecount];
+    short tour[nodecount];
     int tourlength = tsp(distances, tour, nodecount);
 
     //fprintf(stdout,"Tourlength: %d\n", tourlength);
@@ -47,9 +47,9 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-int tsp(int distances[], int tour[], int nodecount) {
-    int used[nodecount];
-    int best;
+int tsp(int distances[], short tour[], int nodecount) {
+    short used[nodecount];
+    short best;
     int i, j, k;
     int tourlength = 0;
     tour[0] = 0;
@@ -67,7 +67,7 @@ int tsp(int distances[], int tour[], int nodecount) {
             if(used[j] == 0) {
                 d = distances[get_index(tour[i-1],j)];
                 if (best == -1 || d < bestDistance) {
-                   best = j;
+                   best = (short) j;
                    bestDistance = d;
                 }
             }
@@ -83,9 +83,10 @@ int tsp(int distances[], int tour[], int nodecount) {
     return tourlength;
 }
 
-void two_opt(int distances[], int tour[], int nodecount) {
+void two_opt(int distances[], short tour[], int nodecount) {
     // TODO: Implement 2-opt
-    int i, j, k, m, temp1;
+    int i, j, k, m;
+    short temp1;
     for(i = 0; i < nodecount-2; ++i) {
         for(j = nodecount-1; j > i+2; --j) {
             if(distances[get_index(tour[i],tour[j-1])] + distances[get_index(tour[j],tour[i+1])] <
@@ -124,7 +125,7 @@ void print_iarray(int array[], int length) {
     printf("]\n");
 }
 
-void print_tour(int array[], int length) {
+void print_tour(short array[], int length) {
     int i;
     for(i = 0; i < length; ++i) {
         printf("%d\n", array[i]);
