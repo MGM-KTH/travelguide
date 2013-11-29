@@ -6,6 +6,7 @@
 #include "main.h"
 
 #define NBURS 5
+#define RAND
 
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
@@ -121,7 +122,7 @@ int tsp(int distances[], short tour[], int nodecount) {
         //fprintf(stdout,"Added to tourlength: %d\n", bestDistance);
         used[best] = 1;
     }
-    for(k = 0; k < 7; ++k) {
+    for(k = 0; k < 5; ++k) {
         two_opt(distances, tour, nodecount);
     }
     return tourlength;
@@ -130,8 +131,14 @@ int tsp(int distances[], short tour[], int nodecount) {
 void two_opt(int distances[], short tour[], int nodecount) {
     // TODO: Implement 2-opt
     int i, j, k, m;
-    int r = rand() % nodecount;
     short temp1;
+
+#ifdef RAND
+    int r = rand() % nodecount;
+#else
+    int r = 0;
+#endif
+
     for(i = r; i < nodecount-2+r; ++i) {
         for(j = nodecount-1+r; j > i+2; --j) {
             if(distances[get_index(tour[i%nodecount],tour[(j-1)%nodecount])] + distances[get_index(tour[j%nodecount],tour[(i+1)%nodecount])] <
