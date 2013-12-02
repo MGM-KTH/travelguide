@@ -96,51 +96,70 @@ int main(int argc, char *argv[]) {
      * The node a sattelite belongs to:  i>>1
      * The companion sattelite:          i^1
      */
-    short slist[2*N];
-    printf("size of satellite list: %d\n", 2*N);
-    tsp(dist, slist, N);
+    short sat[2*N];
+    //printf("size of satellite list: %d\n", 2*N);
+    tsp(dist, sat, N);
 
     //fprintf(stdout,"Tourlength: %d\n", tourlength);
-    print_sarray(slist, 2*N);
+    //print_sarray(sat, 2*N);
+    print_tour(sat, N);
+    //print_diag_matrix(dist,N);
 
     return 0;
 }
 
-void tsp(int dist[], short slist[], int N) {
+void tsp(int dist[], short sat[], int N) {
     short used[N];
     short best;
+    short node;
+    short start;
     int i, j, k;
-    used[0] = 1;
-
-    // Close the loop
-    slist[2*N-2] = 0;
-    slist[1] = 2*N-1;
 
     // Initialize used (visited) array
-    for (i = 1; i < N; ++i) {
+    for (i = 0; i < N; ++i) {
         used[i] = 0;
     }
 
-    // Nearest neighbour
-    for(i = 0; i < N-1; ++i) {
+#ifdef RAND
+    node = rand() % N;
+#else
+    node = 0;
+#endif
+    start = node;
+    used[node] = 1;
+
+    for(i = 0; i < N; ++i) {
         best = -1;
         int d = 0;
         int bestDistance = 10e7;
         for(j = 0; j < N; ++j) {
-            if(i != j && used[j] == 0) {
-                d = dist[get_index(i,j)];
-                if (best == -1 || d < bestDistance) {
-                   best = (short) j;
-                   bestDistance = d;
+            if(node != j && used[j] == 0) {
+                d = dist[get_index(node,j)];
+                if(best == -1 || d < bestDistance) {
+                    best = (short) j;
+                    bestDistance = d;
                 }
             }
         }
-        //printf("i is %d and best is %d\n", i, best);
+        if(best == -1)
+            break;
+
+        //printf("node is %d and best is %d\n", node, best);
         //printf("writing to %d and %d\n", i*2, (unsigned) (best*2)^1);
-        slist[i*2] = best*2;
-        slist[(best*2)^1] = (i*2)^1;
+        //print_sarray(used,N);
+        sat[node*2] = best*2;
+        sat[(best*2)^1] = (node*2)^1;
         used[best] = 1;
+        node = best;
     }
+
+    // Close the loop, depends on last node value
+    sat[node*2] = start*2;
+    sat[(start*2)^1] = (node*2)^1;
+
+    //print_sarray(sat, 2*N);
+
+
     /*
     for(k = 0; k < 5; ++k) {
         two_opt(dist, tour, N);
@@ -263,9 +282,12 @@ void print_sarray(short array[], int length) {
 }
 
 void print_tour(short array[], int length) {
-    int i;
+    int i, index, satellite;
+    satellite = 0;
     for(i = 0; i < length; ++i) {
-        printf("%d\n", array[i]);
+        index = satellite>>1;
+        satellite = array[index*2];
+        printf("%d\n", index);
     }
 }
 
