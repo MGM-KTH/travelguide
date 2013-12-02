@@ -85,46 +85,68 @@ int main(int argc, char *argv[]) {
     */
     //print_diag_matrix(dist, N);
 
-    short tour[N];
-    tsp(dist, tour, N);
+    /*
+     * Create a sattelite list double the size of the amount of elements
+     *
+     *  _0___1___2___3___4_ <--- Nodes
+     * |2|9|4|1|6|3|8|5|0|7| <--- Satellites
+     *  -------------------
+     *
+     * Index of a sattelite:             i
+     * The node a sattelite belongs to:  i>>1
+     * The companion sattelite:          i^1
+     */
+    short slist[2*N];
+    printf("size of satellite list: %d\n", 2*N);
+    tsp(dist, slist, N);
 
     //fprintf(stdout,"Tourlength: %d\n", tourlength);
-    print_tour(tour, N);
+    print_sarray(slist, 2*N);
 
     return 0;
 }
 
-void tsp(int dist[], short tour[], int N) {
+void tsp(int dist[], short slist[], int N) {
     short used[N];
     short best;
     int i, j, k;
-    tour[0] = 0;
     used[0] = 1;
+
+    // Close the loop
+    slist[2*N-2] = 0;
+    slist[1] = 2*N-1;
+
     // Initialize used (visited) array
     for (i = 1; i < N; ++i) {
         used[i] = 0;
     }
+
     // Nearest neighbour
-    for(i = 1; i < N; ++i) {
+    for(i = 0; i < N-1; ++i) {
         best = -1;
         int d = 0;
         int bestDistance = 10e7;
         for(j = 0; j < N; ++j) {
-            if(used[j] == 0) {
-                d = dist[get_index(tour[i-1],j)];
+            if(i != j && used[j] == 0) {
+                d = dist[get_index(i,j)];
                 if (best == -1 || d < bestDistance) {
                    best = (short) j;
                    bestDistance = d;
                 }
             }
         }
-        tour[i] = best;
+        //printf("i is %d and best is %d\n", i, best);
+        //printf("writing to %d and %d\n", i*2, (unsigned) (best*2)^1);
+        slist[i*2] = best*2;
+        slist[(best*2)^1] = (i*2)^1;
         used[best] = 1;
     }
+    /*
     for(k = 0; k < 5; ++k) {
         two_opt(dist, tour, N);
     }
     two_point_five_opt(dist, tour, N);
+    */
 }
 
 void two_opt(int dist[], short tour[], int N) {
