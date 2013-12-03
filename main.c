@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     int dist_size = N*(N-1)/2;
     int dist[dist_size];
 
-    short neighbours[N][NBURS];
+    short **neighbours = malloc(sizeof(short)*N*NBURS);
     for(i = 0; i < NBURS; ++i) {
         neighbours[0][i] = -1;
     }
@@ -90,6 +90,7 @@ int main(int argc, char *argv[]) {
     tsp(dist, tour, N);
     print_tour(tour, N);
 
+    free(neighbours);
     return 0;
 }
 
