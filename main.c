@@ -168,9 +168,9 @@ void tsp(int dist[], short sat[], int N) {
     //print_sarray(sat, 2*N);
 
 
-    //for(k = 0; k < 5; ++k) {
+    for(k = 0; k < 5; ++k) {
         two_opt(dist, sat, N);
-    //}
+    }
     //two_point_five_opt(dist, tour, N);
 }
 
@@ -178,8 +178,8 @@ void two_opt(int dist[], short sat[], int N) {
     // TODO: Implement 2-opt
     int i, j, inode, jnode, isat, jsat;
 
-    print_tour(sat, N);
-    printf("\n");
+    //print_tour(sat, N);
+    //printf("\n");
 
 #ifdef RAND
     int start = rand() % N;
