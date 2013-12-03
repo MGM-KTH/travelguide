@@ -14,6 +14,7 @@ static int get_index(int a, int b);
 void tsp(int dist[], short tour[], int N);
 void two_opt(int dist[], short tour[], int N);
 void two_point_five_opt(int dist[], short tour[], int N);
+void flip_cities(short tour[], int i, int j, int N);
 void move_city(short tour[], int N, int b, int e, int i, int j);
 
 
@@ -36,7 +37,7 @@ int main(int argc, char *argv[]) {
     int dist_size = N*(N-1)/2;
     int dist[dist_size];
 
-    short neighbours[N][NBURS];
+    short **neighbours = malloc(sizeof(short)*N*NBURS);
     for(i = 0; i < NBURS; ++i) {
         neighbours[0][i] = -1;
     }
@@ -107,6 +108,7 @@ int main(int argc, char *argv[]) {
     print_tour(sat, N);
     //print_diag_matrix(dist,N);
 
+    free(neighbours);
     return 0;
 }
 
@@ -172,8 +174,7 @@ void tsp(int dist[], short sat[], int N) {
 
 void two_opt(int dist[], short tour[], int N) {
     // TODO: Implement 2-opt
-    int i, j, k, m;
-    short temp1;
+    int i, j;
 
 #ifdef RAND
     int r = rand() % N;
@@ -187,17 +188,22 @@ void two_opt(int dist[], short tour[], int N) {
                     dist[get_index(tour[i%N],tour[(i+1)%N])] + dist[get_index(tour[(j-1)%N],tour[j%N])]) {
                 //printf("Swap %d-%d and %d-%d\n", i, i+1, j-1, j);
                 //printf("dist %d+%d < %d+%d\n", dist[get_index(tour[i],tour[j-1])], dist[get_index(tour[j],tour[i+1])], dist[get_index(tour[i],tour[i+1])], dist[get_index(tour[j-1],tour[j])]);
-                m = j-1;
-                // TODO: Possibly fix a data structure that manages this (e.g. Satellite list)
-                for(k = i+1; k < m; k++) {
-                    temp1 = tour[k%N];
-                    tour[k%N] = tour[m%N];
-                    tour[m%N] = temp1;
-                    --m;
-                }
-                //print_tour(*tour, N);
+
+                flip_cities(tour,i,j,N);
             }
         }
+    }
+}
+
+void flip_cities(short tour[], int i, int j, int N) {
+    int k, m;
+    short temp1;
+    m = j-1;
+    for(k = i+1; k < m; k++) {
+        temp1 = tour[k%N];
+        tour[k%N] = tour[m%N];
+        tour[m%N] = temp1;
+        --m;
     }
 }
 
@@ -205,7 +211,8 @@ void two_opt(int dist[], short tour[], int N) {
 void two_point_five_opt(int dist[], short tour[], int N) {
     int i, j, a, b, c, d, e;
     int improvement = 1;
-    while(improvement) {
+    int iters = 0;
+    while(improvement && iters <= 2) {
         improvement = 0;
         for(i = 0; i < (N-2); ++i) {
             a = tour[i];
@@ -225,6 +232,7 @@ void two_point_five_opt(int dist[], short tour[], int N) {
                 }
             }
         }
+        ++iters;
     }
 }
 
