@@ -179,6 +179,7 @@ void two_opt(int dist[], short sat[], int N) {
     int i, j, inode, jnode, isat, jsat;
 
     print_tour(sat, N);
+    printf("\n");
 
 #ifdef RAND
     int start = rand() % N;
@@ -195,15 +196,15 @@ void two_opt(int dist[], short sat[], int N) {
         for(j = N-1+start; j > i+2; --j) {
             int i_next = sat[isat]>>1; // Get next node index from forward flow satellite
             int j_prev = sat[jsat]>>1; // Get prev node index from backward flow satellite
-            printf("i = %d i_next = %d j = %d j_prev = %d\n", inode, i_next, jnode, j_prev);
-            printf("isat = %d jsat = %d\n", isat, jsat);
+            //printf("i = %d i_next = %d j = %d j_prev = %d\n", inode, i_next, jnode, j_prev);
+            //printf("isat = %d jsat = %d\n", isat, jsat);
             int old_dist = dist[get_index(inode,i_next)] + dist[get_index(jnode,j_prev)];
 
             if(dist[get_index(inode,j_prev)] + dist[get_index(jnode,i_next)] < old_dist) {
-                printf("SWAP!\n");
-                print_sarray(sat, 2*N);
+                //printf("SWAP!\n");
+                //print_sarray(sat, 2*N);
                 flip_cities(sat,isat,jsat);
-                print_sarray(sat, 2*N);
+                //print_sarray(sat, 2*N);
             }
 
             jsat = sat[jsat];
@@ -344,7 +345,7 @@ void print_tour(short array[], int length) {
     satellite = 0;
     for(i = 0; i < length; ++i) {
         index = satellite>>1;
-        satellite = array[index*2];
+        satellite = array[satellite];
         printf("%d\n", index);
     }
 }
