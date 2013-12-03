@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+#include <sys/time.h>
 #include <stdlib.h>
+#include <signal.h>
 #include "main.h"
 
 #define NBURS 5
@@ -17,8 +19,18 @@ void two_point_five_opt(int dist[], short tour[], int N);
 void flip_cities(short sat[], int isat, int jsat);
 void move_city(short tour[], int N, int b, int e, int i, int j);
 
+void set_timer();
+void oot_handler(int signum);
+
+int OUTOFTIME;
+
 
 int main(int argc, char *argv[]) {
+
+    OUTOFTIME = 0;
+    signal(SIGALRM, oot_handler); // Set signal handler for SIGALRM
+    set_timer();                  // Setup timer
+
     srand(time(NULL));
     int N;
     scanf("%d", &N);
@@ -116,6 +128,20 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+void set_timer() {
+     struct itimerval timer;
+     timer.it_value.tv_sec = 1;       /* 1 second */
+     timer.it_value.tv_usec = 900000; /* 0.9 seconds */
+     timer.it_interval.tv_sec = 0;
+     timer.it_interval.tv_usec = 0; 
+
+     setitimer(ITIMER_REAL, &timer, NULL);
+}
+
+void oot_handler(int signum) {
+    OUTOFTIME = 1;
+}
+
 void tsp(int dist[], short sat[], int N) {
     short used[N];
     short best;
@@ -168,9 +194,12 @@ void tsp(int dist[], short sat[], int N) {
     //print_sarray(sat, 2*N);
 
 
-    for(k = 0; k < 5; ++k) {
+    //for(k = 0; k < 5; ++k) {
+    while(!OUTOFTIME) {
         two_opt(dist, sat, N);
     }
+
+    //printf("OUTOFTIME\n");
     //two_point_five_opt(dist, tour, N);
 }
 
