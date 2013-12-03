@@ -12,9 +12,9 @@
 static int distance(float x1, float y1, float x2, float y2);
 static int get_index(int a, int b);
 void tsp(int dist[], short tour[], int N);
-void two_opt(int dist[], short tour[], int N);
+void two_opt(int dist[], short sat[], int N);
 void two_point_five_opt(int dist[], short tour[], int N);
-void flip_cities(short tour[], int i, int j, int N);
+void flip_cities(short sat[], int isat, int jsat);
 void move_city(short tour[], int N, int b, int e, int i, int j);
 
 
@@ -168,47 +168,91 @@ void tsp(int dist[], short sat[], int N) {
     //print_sarray(sat, 2*N);
 
 
-    /*
-    for(k = 0; k < 5; ++k) {
-        two_opt(dist, tour, N);
-    }
-    two_point_five_opt(dist, tour, N);
-    */
+    //for(k = 0; k < 5; ++k) {
+        two_opt(dist, sat, N);
+    //}
+    //two_point_five_opt(dist, tour, N);
 }
 
-void two_opt(int dist[], short tour[], int N) {
+void two_opt(int dist[], short sat[], int N) {
     // TODO: Implement 2-opt
-    int i, j;
+    int i, j, inode, jnode, isat, jsat;
+
+    print_tour(sat, N);
 
 #ifdef RAND
-    int r = rand() % N;
+    int start = rand() % N;
 #else
-    int r = 0;
+    int start = 0;
 #endif
+    inode = start;
+    isat = start*2;  // Get index of forward flow satellite of first node in tour
 
+    for(i = start; i < N-2+start; ++i) {
+        jsat = sat[(start*2)^1]; // Get index of counter flow satellite of last node in tour
+        jnode = jsat>>1;         // Get last node in tour
+
+        for(j = N-1+start; j > i+2; --j) {
+            int i_next = sat[isat]>>1; // Get next node index from forward flow satellite
+            int j_prev = sat[jsat]>>1; // Get prev node index from backward flow satellite
+            printf("i = %d i_next = %d j = %d j_prev = %d\n", inode, i_next, jnode, j_prev);
+            printf("isat = %d jsat = %d\n", isat, jsat);
+            int old_dist = dist[get_index(inode,i_next)] + dist[get_index(jnode,j_prev)];
+
+            if(dist[get_index(inode,j_prev)] + dist[get_index(jnode,i_next)] < old_dist) {
+                printf("SWAP!\n");
+                print_sarray(sat, 2*N);
+                flip_cities(sat,isat,jsat);
+                print_sarray(sat, 2*N);
+            }
+
+            jsat = sat[jsat];
+            jnode = jsat>>1;
+        }
+        isat = sat[isat];
+        inode = isat>>1;
+    }
+
+    /*
     for(i = r; i < N-2+r; ++i) {
         for(j = N-1+r; j > i+2; --j) {
-            if(dist[get_index(tour[i%N],tour[(j-1)%N])] + dist[get_index(tour[j%N],tour[(i+1)%N])] <
-                    dist[get_index(tour[i%N],tour[(i+1)%N])] + dist[get_index(tour[(j-1)%N],tour[j%N])]) {
+            if(dist[get_index(sat[i%N],sat[(j-1)%N])] + dist[get_index(sat[j%N],sat[(i+1)%N])] <
+                    dist[get_index(sat[i%N],sat[(i+1)%N])] + dist[get_index(sat[(j-1)%N],sat[j%N])]) {
                 //printf("Swap %d-%d and %d-%d\n", i, i+1, j-1, j);
-                //printf("dist %d+%d < %d+%d\n", dist[get_index(tour[i],tour[j-1])], dist[get_index(tour[j],tour[i+1])], dist[get_index(tour[i],tour[i+1])], dist[get_index(tour[j-1],tour[j])]);
+                //printf("dist %d+%d < %d+%d\n", dist[get_index(sat[i],sat[j-1])], dist[get_index(sat[j],sat[i+1])], dist[get_index(sat[i],sat[i+1])], dist[get_index(sat[j-1],sat[j])]);
 
-                flip_cities(tour,i,j,N);
+                flip_cities(sat,i,j,N);
             }
         }
     }
+    */
 }
 
-void flip_cities(short tour[], int i, int j, int N) {
+void flip_cities(short sat[], int isat, int jsat) {
+
+    // Get satellites for next/prev
+    int i_next = sat[isat];
+    int j_prev = sat[jsat];
+
+    // Set satellites in i and j
+    sat[isat] = j_prev;
+    sat[jsat] = i_next;
+
+    // Set satellites in i+1 and j-1
+    sat[i_next^1] = jsat^1;
+    sat[j_prev^1] = isat^1;
+
+    /*
     int k, m;
     short temp1;
-    m = j-1;
-    for(k = i+1; k < m; k++) {
-        temp1 = tour[k%N];
-        tour[k%N] = tour[m%N];
-        tour[m%N] = temp1;
+    m = jnode-1;
+    for(k = inode+1; k < m; k++) {
+        temp1 = sat[k%N];
+        sat[k%N] = sat[m%N];
+        sat[m%N] = temp1;
         --m;
     }
+    */
 }
 
 /* 2.5-opt */
