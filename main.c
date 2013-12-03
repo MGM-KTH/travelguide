@@ -8,16 +8,17 @@
 #include "main.h"
 
 #define NBURS 5
-//#define RAND
+#define TWO_POINT_FIVE_OPT_ITERS 2
+#define RAND
 
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
 static int get_index(int a, int b);
 void tsp(int dist[], short tour[], int N);
 void two_opt(int dist[], short sat[], int N);
-void two_point_five_opt(int dist[], short tour[], int N);
+void two_point_five_opt(int dist[], short sat[], int N);
 void flip_cities(short sat[], int isat, int jsat);
-void move_city(short tour[], int N, int b, int e, int i, int j);
+void move_city(short sat[], int N, int a, int b, int c, int d, int e);
 
 void set_timer();
 void oot_handler(int signum);
@@ -37,7 +38,9 @@ int main(int argc, char *argv[]) {
 
     float x[N];
     float y[N];
-    int i, j, k;
+    int i, j;
+    //int k; // Unused atm. Used for neighbour list loop.
+
     // Read coordinates from stdin
     for(i = 0; i < N; ++i) {
         scanf("%f %f", &x[i], &y[i]);
@@ -194,13 +197,14 @@ void tsp(int dist[], short sat[], int N) {
     //print_sarray(sat, 2*N);
 
 
-    //for(k = 0; k < 5; ++k) {
-    while(!OUTOFTIME) {
+    for(k = 0; k < 5; ++k) {
         two_opt(dist, sat, N);
     }
+    while(!OUTOFTIME) {
+        two_point_five_opt(dist, sat, N);
+    }
 
-    //printf("OUTOFTIME\n");
-    //two_point_five_opt(dist, tour, N);
+    // printf("OUTOFTIME\n");
 }
 
 void two_opt(int dist[], short sat[], int N) {
@@ -242,20 +246,6 @@ void two_opt(int dist[], short sat[], int N) {
         isat = sat[isat];
         inode = isat>>1;
     }
-
-    /*
-    for(i = r; i < N-2+r; ++i) {
-        for(j = N-1+r; j > i+2; --j) {
-            if(dist[get_index(sat[i%N],sat[(j-1)%N])] + dist[get_index(sat[j%N],sat[(i+1)%N])] <
-                    dist[get_index(sat[i%N],sat[(i+1)%N])] + dist[get_index(sat[(j-1)%N],sat[j%N])]) {
-                //printf("Swap %d-%d and %d-%d\n", i, i+1, j-1, j);
-                //printf("dist %d+%d < %d+%d\n", dist[get_index(sat[i],sat[j-1])], dist[get_index(sat[j],sat[i+1])], dist[get_index(sat[i],sat[i+1])], dist[get_index(sat[j-1],sat[j])]);
-
-                flip_cities(sat,i,j,N);
-            }
-        }
-    }
-    */
 }
 
 void flip_cities(short sat[], int isat, int jsat) {
@@ -271,39 +261,36 @@ void flip_cities(short sat[], int isat, int jsat) {
     // Set satellites in i+1 and j-1
     sat[i_next^1] = jsat^1;
     sat[j_prev^1] = isat^1;
-
-    /*
-    int k, m;
-    short temp1;
-    m = jnode-1;
-    for(k = inode+1; k < m; k++) {
-        temp1 = sat[k%N];
-        sat[k%N] = sat[m%N];
-        sat[m%N] = temp1;
-        --m;
-    }
-    */
 }
 
 /* 2.5-opt */
-void two_point_five_opt(int dist[], short tour[], int N) {
-    int i, j, a, b, c, d, e;
+void two_point_five_opt(int dist[], short sat[], int N) {
+    // _i variables refers to an actual city index. 
+    // a-e refers to satellite indexes
+    int i, j, a, b, c, d, e, a_i, b_i, c_i, d_i, e_i;
     int improvement = 1;
     int iters = 0;
-    while(improvement && iters <= 2) {
+    while(improvement && iters < TWO_POINT_FIVE_OPT_ITERS) {
         improvement = 0;
         for(i = 0; i < (N-2); ++i) {
-            a = tour[i];
-            b = tour[i+1];
-            c = tour[i+2];
+            a = sat[i*2]; // Forward node for i
+            b = sat[a];   // Next for a
+            c = sat[b];
+            a_i = a >> 1;   // Get city indexes
+            b_i = b >> 1;
+            c_i = c >> 1;
             for (j = 0; j < (N-1); ++j) {
-                if (abs(i-j) <= 2)
+                d = sat[j*2]; // Forward node for j
+                e = sat[d];   // Next for d
+                d_i = d >> 1;
+                e_i = e >> 1;
+                if (d_i == a_i || d_i == b_i || d_i == c_i)
                     continue;
-                d = tour[j];
-                e = tour[j+1];
                 // fprintf(stdout, "a: %d, b: %d, c: %d, d: %d, e: %d, i: %d, j: %d\n", a,b,c,d,e, i, j);
-                if ((dist[get_index(a, b)] + dist[get_index(b, c)] + dist[get_index(d,e)]) > (dist[get_index(a,c)] + dist[get_index(d,b)] + dist[get_index(b,e)])) {
-                    move_city(tour,N,b,e,i,j);
+                // fprintf(stdout, "Printing tour:\n");
+                // print_tour(sat, N);
+                if ((dist[get_index(a_i, b_i)] + dist[get_index(b_i, c_i)] + dist[get_index(d_i,e_i)]) > (dist[get_index(a_i,c_i)] + dist[get_index(d_i,b_i)] + dist[get_index(b_i,e_i)])) {
+                    move_city(sat,N,a,b,c,d,e);
                     improvement = 1;
                     i = 0;    // restart outer for-loop
                     break;
@@ -311,7 +298,7 @@ void two_point_five_opt(int dist[], short tour[], int N) {
             }
         }
         ++iters;
-    }
+    } 
 }
 
 /*
@@ -319,27 +306,13 @@ void two_point_five_opt(int dist[], short tour[], int N) {
  * Changes the tour from a-b-c-d-e to a-c-d-b-e,
  * moving b from between a and c to between d and e.
  */
-void move_city(short tour[], int N, int b, int e, int i, int j) {
-    int m, temp1, temp2;
-    if (i < j) {
-        // Shift the tour to the left, removing the old b
-        for(m = (i+2); m <= j; ++m) {
-            tour[m-1] = tour[m];
-        }
-        // insert new b between j and j+1
-        tour[j] = b; 
-    }
-    else if (i > j) {
-        // insert b after d
-        temp1 = e;
-        tour[j+1] = b;
-        // push to the right until old b, replacing it.
-        for(m = j+2; m <= (i + 1); ++m) {
-            temp2 = tour[m];
-            tour[m] = temp1;
-            temp1 = temp2;
-        }
-    }
+void move_city(short sat[], int N, int a, int b, int c, int d, int e) {
+    sat[d] = b;                // D --> B
+    sat[b^1] = d^1;            // B <-- D
+    sat[b] = e;                // B --> E
+    sat[e^1] = b^1;            // E <-- B
+    sat[a] = c;                // A --> C
+    sat[c^1] = a^1;            // C <-- A
 }
 
 void print_farray(float array[], int length) {
