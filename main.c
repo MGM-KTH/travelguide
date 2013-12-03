@@ -6,7 +6,7 @@
 #include "main.h"
 
 #define NBURS 5
-#define RAND
+//#define RAND
 
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
@@ -37,18 +37,22 @@ int main(int argc, char *argv[]) {
     int dist_size = N*(N-1)/2;
     int dist[dist_size];
 
+    /*
     short **neighbours = malloc(sizeof(short)*N*NBURS);
     for(i = 0; i < NBURS; ++i) {
         neighbours[0][i] = -1;
     }
+    */
 
     // Calculate pairwise dist
     for(i = 1; i < N; ++i) {
 
         // Piggyback neighbour initialization
+        /*
         for(j = 0; j < NBURS; ++j) {
             neighbours[i][j] = -1;
         }
+        */
 
         for(j = 0; j < i; ++j) {
             dist[get_index(i,j)] = distance(x[i], y[i], x[j], y[j]);
@@ -108,7 +112,7 @@ int main(int argc, char *argv[]) {
     print_tour(sat, N);
     //print_diag_matrix(dist,N);
 
-    free(neighbours);
+    //free(neighbours);
     return 0;
 }
 
