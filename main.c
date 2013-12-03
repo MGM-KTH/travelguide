@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    /*
     // Calculate closest neighbours for every node. Lowest index is closest.
     int d, node, tmp;
     for(i = 0; i < N; ++i) {
@@ -76,6 +77,7 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+    */
 
     /*
     for(i = 0; i < N; ++i) {
