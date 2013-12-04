@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <string.h>
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
@@ -191,14 +192,66 @@ void tsp(short neighbours[], int dist[], short sat[]) {
     sat[(start*2)^1] = (best*2)^1;
 
     tour_length = best_tour;
+    short r1, r2, r1sat, r2sat;
+    short tour[2*N];
+    int old_dist, new_dist;
+    memcpy(&(tour[0]), &(sat[0]), 2*N*sizeof(short));
 
-    for(k = 0; k < 5; ++k) {
-        tour_length = two_opt(dist, sat, tour_length);
-        //printf("tourlength = %d\n", tour_length);
+    /*
+     * Optimization loop
+     */
+    while(!OUTOFTIME) {
+        for(k = 0; k < 5; ++k) {
+            if(OUTOFTIME)
+                break;
+
+            tour_length = two_opt(dist, tour, tour_length);
+        }
+        tour_length = two_point_five_opt(neighbours, dist, tour, tour_length);
+
+        if(tour_length < best_tour) {
+            //printf("found better tourlength = %d\n", tour_length);
+            best_tour = tour_length;
+            memcpy(&(sat[0]), &(tour[0]), 2*N*sizeof(short));
+        }
+
+        //printf("randomizing\n");
+        for(k = 0; k < 5; ++k) {
+            if(OUTOFTIME)
+                break;
+            //print_sarray(tour, 2*N);
+            //print_tour(tour);
+            //printf("\n");
+            r1 = rand() % N; // Random start index
+            do{
+                r2 = rand() % N-2; // Random amount of steps to switch target
+            }while(!OUTOFTIME && r2 < 2);
+            r1sat = 2*r1;
+            r2sat = tour[r1sat^1];
+
+            for(i = 0; i < r2; ++i) { // O(n) loop!!!
+                if(OUTOFTIME)
+                    break;
+                r2sat = tour[r2sat];
+            }
+            if(OUTOFTIME)
+                break;
+
+            // Calculate new length
+            r2 = r2sat>>1; // reuse r2 to denote node index
+            int r1_next = tour[r1sat]>>1;
+            int r2_prev = tour[r2sat]>>1;
+            old_dist = dist[get_index(r1, r1_next)] + dist[get_index(r2, r2_prev)];
+            new_dist = dist[get_index(r1, r2_prev)] + dist[get_index(r2, r1_next)];
+            if(old_dist > new_dist)
+                tour_length -= old_dist-new_dist;
+            else
+                tour_length += new_dist-old_dist;
+
+            // Flip it good
+            flip_section(tour, r1sat, r2sat);
+        }
     }
-    // while(!OUTOFTIME) {
-       tour_length = two_point_five_opt(neighbours, dist, sat, tour_length);
-    // }
 }
 
 short get_nearest(int dist[], short used[], int i) {
