@@ -16,7 +16,7 @@ static int get_index(int a, int b);
 static int get_n_index(int i, int j);
 void tsp(short neighbours[], int dist[], short tour[]);
 short get_nearest(int dist[], short used[], int i);
-void two_opt(int dist[], short sat[]);
+int two_opt(int dist[], short sat[], int tourlength);
 void two_point_five_opt(short neighbours[], int dist[], short sat[]);
 void flip_section(short sat[], int isat, int jsat);
 void move_city(short sat[], int a, int b, int c, int d, int e);
@@ -193,7 +193,8 @@ void tsp(short neighbours[], int dist[], short sat[]) {
     tour_length = best_tour;
 
     for(k = 0; k < 5; ++k) {
-        two_opt(dist, sat);
+        tour_length = two_opt(dist, sat, tour_length);
+        //printf("tourlength = %d\n", tour_length);
     }
     // while(!OUTOFTIME) {
         two_point_five_opt(neighbours, dist, sat);
@@ -216,7 +217,7 @@ short get_nearest(int dist[], short used[], int i) {
     return best;
 }
 
-void two_opt(int dist[], short sat[]) {
+int two_opt(int dist[], short sat[], int tourlength) {
     // TODO: Implement 2-opt
     int i, j, inode, jnode, isat, jsat;
 
@@ -238,8 +239,10 @@ void two_opt(int dist[], short sat[]) {
             //printf("i = %d i_next = %d j = %d j_prev = %d\n", inode, i_next, jnode, j_prev);
             //printf("isat = %d jsat = %d\n", isat, jsat);
             int old_dist = dist[get_index(inode,i_next)] + dist[get_index(jnode,j_prev)];
+            int new_dist = dist[get_index(inode,j_prev)] + dist[get_index(jnode,i_next)];
 
-            if(dist[get_index(inode,j_prev)] + dist[get_index(jnode,i_next)] < old_dist) {
+            if(new_dist < old_dist) {
+                tourlength -= old_dist-new_dist;
                 //printf("SWAP!\n");
                 //print_sarray(sat, 2*N);
                 flip_section(sat,isat,jsat);
@@ -252,6 +255,8 @@ void two_opt(int dist[], short sat[]) {
         isat = sat[isat];
         inode = isat>>1;
     }
+
+    return tourlength;
 }
 
 void flip_section(short sat[], int isat, int jsat) {
