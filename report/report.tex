@@ -152,7 +152,7 @@ The below image illustrates the concept:
 \includegraphics[scale=0.4]{25opt}
 \end{center}
 
-
+    
 
 %----------------------------------------------------------------------------------------
 % SECTION 3
@@ -160,6 +160,8 @@ The below image illustrates the concept:
 \section{Implementation}
 The program was implemented in the C programming language.
 
+\subsection{Neighbour lists}
+In order to speed up the lookup of a city's shortest neighbours
 
 \subsection{Satellite lists}
 In order to effectively perform the local optimizations a specialized data structure is required. In particular, we need to optimize operations such as reversing a subtour, and moving a city. To move a city, we need a structure that has tour positions that are independent from other parts of the tour. This can be achieved with a doubly linked list since it allows us to easily move individual cities. However, to optimize reversal of a subtour we need something called \emph{satellite lists}. They use ...etc etc.
