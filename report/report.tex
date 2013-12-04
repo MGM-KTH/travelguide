@@ -170,7 +170,11 @@ In order to effectively perform the local optimizations a specialized data struc
 \includegraphics[scale=0.3]{satellite}
 \end{center}
 
-
+\subsection{Introducing randomness}
+A significant problem with local optimization techiques is the posibility of reaching a local minimum which is suboptimal.
+One solution to this is to ``destroy'' the local minimum by swapping a few random edges and performing the local search again.
+This can help the solution to break away from the local minimum and achieve a better result.
+This cycle of introducing randomness and performing local optimization can be repeated indefinitely providing that the best solution is always saved.
 
 %------------------------------------------------------------------------------
 %   SECTION 4
@@ -178,14 +182,19 @@ In order to effectively perform the local optimizations a specialized data struc
 
 \section{Results}
 
+\begin{table}
+  \centering
     \begin{tabular}{|c|c|c|c|c|}
     \hline
-    \textbf{Algorithm} & \textbf{Score} \\ \hline
+    \textbf{Algorithm} & \textbf{Best Score} \\ \hline
     Nearest Neighbour & 3 \\ \hline
-    NN + 2-opt & 19 \\ \hline
-    NN + 2.5-opt & 25 \\ \hline
+    2-opt & 19 \\ \hline
+    2.5-opt & 25 \\ \hline
+    Random swaps & 33 \\ \hline
     \end{tabular}
+    \caption{All rows includes features of the ones above}
     \hspace{10pt}
+  \end{table}
 
 
 \section{Discussion}
