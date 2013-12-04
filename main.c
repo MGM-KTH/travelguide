@@ -146,6 +146,8 @@ void tsp(short neighbours[], int dist[], short sat[], int N) {
     short used[N];
     short node, best, start;
     int found;
+    int tour_length;
+    int best_tour = 0;
     int i, j, k;
 
     // Initialize used (visited) array
@@ -156,7 +158,7 @@ void tsp(short neighbours[], int dist[], short sat[], int N) {
 #ifdef RAND
     start = rand() % N;
 #else
-    start = 0;
+    start = 5;
 #endif
     used[start] = 1;
     node = start;
@@ -166,18 +168,17 @@ void tsp(short neighbours[], int dist[], short sat[], int N) {
         for (j = 0; j < NBURS; ++j) {
             // check neighbour list
             best = neighbours[get_n_index(node,j)];
-            if (best != node) {
-                // fprintf(stdout, "best: %d, node: %d, used: %d\n", best, node, used[best]);
-                if(!used[best]) {
-                    found = 1;
-                    break;
-                }
+            // fprintf(stdout, "best: %d, node: %d, used: %d\n", best, node, used[best]);
+            if(!used[best]) {
+                found = 1;
+                break;
             }
         }
         if(!found) {
             // Backup plan: Check all nodes
             best = get_nearest(dist,used,node,N);
         }
+        best_tour += dist[get_index(node, best)];
         sat[node*2] = best*2;
         sat[(best*2)^1] = (node*2)^1;
         used[best] = 1;
@@ -186,14 +187,18 @@ void tsp(short neighbours[], int dist[], short sat[], int N) {
     }
 
     // Close the loop, depends on last node value
+    assert(start!=best);
+    best_tour += dist[get_index(start, best)];
     sat[best*2] = start*2;
     sat[(start*2)^1] = (best*2)^1;
 
-    for(k = 0; k < 5; ++k) {
-        two_opt(dist, sat, N);
-    }
+    tour_length = best_tour;
+
+    //for(k = 0; k < 5; ++k) {
+        //two_opt(dist, sat, N);
+    //}
     // while(!OUTOFTIME) {
-        two_point_five_opt(neighbours, dist, sat, N);
+        //two_point_five_opt(neighbours, dist, sat, N);
     // }
 }
 
