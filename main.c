@@ -16,7 +16,7 @@ static int get_index(int a, int b);
 void tsp(int dist[], short tour[], int N);
 void two_opt(int dist[], short sat[], int N);
 void two_point_five_opt(int dist[], short tour[], int N);
-void flip_cities(short sat[], int isat, int jsat);
+void flip_section(short sat[], int isat, int jsat);
 void move_city(short tour[], int N, int b, int e, int i, int j);
 
 void set_timer();
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 
     float x[N];
     float y[N];
-    int i, j, k;
+    int i, j;
     // Read coordinates from stdin
     for(i = 0; i < N; ++i) {
         scanf("%f %f", &x[i], &y[i]);
@@ -147,7 +147,7 @@ void tsp(int dist[], short sat[], int N) {
     short best;
     short node;
     short start;
-    int i, j, k;
+    int i, j;
 
     // Initialize used (visited) array
     for (i = 0; i < N; ++i) {
@@ -232,7 +232,7 @@ void two_opt(int dist[], short sat[], int N) {
             if(dist[get_index(inode,j_prev)] + dist[get_index(jnode,i_next)] < old_dist) {
                 //printf("SWAP!\n");
                 //print_sarray(sat, 2*N);
-                flip_cities(sat,isat,jsat);
+                flip_section(sat,isat,jsat);
                 //print_sarray(sat, 2*N);
             }
 
@@ -258,7 +258,7 @@ void two_opt(int dist[], short sat[], int N) {
     */
 }
 
-void flip_cities(short sat[], int isat, int jsat) {
+void flip_section(short sat[], int isat, int jsat) {
 
     // Get satellites for next/prev
     int i_next = sat[isat];
