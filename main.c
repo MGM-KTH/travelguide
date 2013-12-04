@@ -17,7 +17,7 @@ static int get_n_index(int i, int j);
 void tsp(short neighbours[], int dist[], short tour[]);
 short get_nearest(int dist[], short used[], int i);
 int two_opt(int dist[], short sat[], int tourlength);
-void two_point_five_opt(short neighbours[], int dist[], short sat[]);
+int two_point_five_opt(short neighbours[], int dist[], short sat[], int tourlength);
 void flip_section(short sat[], int isat, int jsat);
 void move_city(short sat[], int a, int b, int c, int d, int e);
 
@@ -197,7 +197,7 @@ void tsp(short neighbours[], int dist[], short sat[]) {
         //printf("tourlength = %d\n", tour_length);
     }
     // while(!OUTOFTIME) {
-        two_point_five_opt(neighbours, dist, sat);
+       tour_length = two_point_five_opt(neighbours, dist, sat, tour_length);
     // }
 }
 
@@ -274,11 +274,14 @@ void flip_section(short sat[], int isat, int jsat) {
     sat[j_prev^1] = isat^1;
 }
 
-/* 2.5-opt */
-void two_point_five_opt(short neighbours[], int dist[], short sat[]) {
+/* 2.5-opt 
+ * Returns the new tourlength
+ */
+int two_point_five_opt(short neighbours[], int dist[], short sat[], int tourlength) {
     // _i variables refers to an actual city index. 
     // a-e refers to satellite indexes
     int i, j, a, b, c, d, e, a_i, b_i, c_i, d_i, e_i;
+    int new_tourlength = tourlength;
     int improvement = 1;
     int iters = 0;
     while(improvement && iters <= TWO_POINT_FIVE_OPT_ITERS) {
@@ -300,9 +303,11 @@ void two_point_five_opt(short neighbours[], int dist[], short sat[]) {
                 // fprintf(stdout, "a: %d, b: %d, c: %d, d: %d, e: %d, i: %d, j: %d\n", a,b,c,d,e, i, j);
                 // fprintf(stdout, "Printing tour:\n");
                 // print_tour(sat);
-                if ((dist[get_index(a_i, b_i)] + dist[get_index(b_i, c_i)] + dist[get_index(d_i,e_i)]) > (dist[get_index(a_i,c_i)] + dist[get_index(d_i,b_i)] + dist[get_index(b_i,e_i)])) {
+                int diff = (dist[get_index(a_i, b_i)] + dist[get_index(b_i, c_i)] + dist[get_index(d_i,e_i)]) - (dist[get_index(a_i,c_i)] + dist[get_index(d_i,b_i)] + dist[get_index(b_i,e_i)]);
+                if (diff > 0) {
                     move_city(sat,a,b,c,d,e);
                     improvement = 1;
+                    new_tourlength -= diff;
                     i = 0;    // restart outer for-loop
                     break;
                 }
@@ -310,6 +315,7 @@ void two_point_five_opt(short neighbours[], int dist[], short sat[]) {
         }
         ++iters;
     }
+    return new_tourlength;
 }
 
 /*
