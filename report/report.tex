@@ -107,6 +107,8 @@
 \section*{Statement of collaboration}
 All of the research was done together, and the report was written together.
 Gustaf implemented the initial 2-opt, and Martin implementented the initial 2.5-opt.
+Gustaf did the initial satellite lists and neighbour lists. Gustaf reworked 2-opt to work with satellite lists.
+Martin reworked 2.5-opt to work with satellite lists, and reworked Nearest Neighbour and 2.5-opt to work with with the neighbour lists.
 
 \section{Introduction}
 
@@ -115,7 +117,7 @@ This project was done as part of the course \emph{Advanced Algorithms} at the Ro
 
 \subsection{Problem}
 
-The travelling salesman problem (TSP) is famous in both theoretical computer science and in operations research. It asks the following question: 
+The traveling salesman problem (TSP) is famous in both theoretical computer science and in operations research. It asks the following question: 
 
 \begin{center}
     \emph{Given a list of cities and the distance between each pair of cities, what is the shortest possible route that visits each city exactly once and returns to the origin city?}
