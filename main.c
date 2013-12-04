@@ -8,7 +8,7 @@
 #include "main.h"
 
 #define TWO_POINT_FIVE_OPT_ITERS 50
-#define RAND
+//#define RAND
 
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
@@ -26,7 +26,6 @@ void oot_handler(int signum);
 
 int OUTOFTIME;
 int NBURS;
-
 
 int main(int argc, char *argv[]) {
 
@@ -55,8 +54,10 @@ int main(int argc, char *argv[]) {
 
     if(N <= 40)
         NBURS = N-1;
-    else
+    else if (N <= 500)
         NBURS = 40;
+    else
+        NBURS = 80;
 
     int neighbour_list_size = N*NBURS;
     short neighbours[neighbour_list_size];
@@ -185,7 +186,6 @@ void tsp(short neighbours[], int dist[], short sat[], int N) {
         // fprintf(stdout, "Using %d\n", best);
         node = best;
     }
-
     // Close the loop, depends on last node value
     assert(start!=best);
     best_tour += dist[get_index(start, best)];
@@ -221,9 +221,6 @@ short get_nearest(int dist[], short used[], int i, int N) {
 void two_opt(int dist[], short sat[], int N) {
     // TODO: Implement 2-opt
     int i, j, inode, jnode, isat, jsat;
-
-    //print_tour(sat, N);
-    //printf("\n");
 
 #ifdef RAND
     int start = rand() % N;
@@ -291,11 +288,11 @@ void two_point_five_opt(short neighbours[], int dist[], short sat[], int N) {
             b_i = b >> 1;
             c_i = c >> 1;
             for (j = 0; j < NBURS; ++j) {
-                d = sat[neighbours[get_n_index(i,j)]*2]; // Forward node for j
+                d = sat[neighbours[get_n_index(i,j)]*2]; // close neighbour
                 e = sat[d];   // Next for d
                 d_i = d >> 1;
                 e_i = e >> 1;
-                if (d_i == a_i || d_i == b_i || d_i == c_i)
+                if (d_i == a_i || d_i == b_i || d_i == c_i) // Check that cities do not overlap
                     continue;
                 // fprintf(stdout, "a: %d, b: %d, c: %d, d: %d, e: %d, i: %d, j: %d\n", a,b,c,d,e, i, j);
                 // fprintf(stdout, "Printing tour:\n");
