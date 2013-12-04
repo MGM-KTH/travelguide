@@ -8,24 +8,25 @@
 #include "main.h"
 
 #define TWO_POINT_FIVE_OPT_ITERS 50
-//#define RAND
+#define RAND
 
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
 static int get_index(int a, int b);
 static int get_n_index(int i, int j);
-void tsp(short neighbours[], int dist[], short tour[], int N);
-short get_nearest(int dist[], short used[], int i, int N);
-void two_opt(int dist[], short sat[], int N);
-void two_point_five_opt(short neighbours[], int dist[], short sat[], int N);
+void tsp(short neighbours[], int dist[], short tour[]);
+short get_nearest(int dist[], short used[], int i);
+void two_opt(int dist[], short sat[]);
+void two_point_five_opt(short neighbours[], int dist[], short sat[]);
 void flip_section(short sat[], int isat, int jsat);
-void move_city(short sat[], int N, int a, int b, int c, int d, int e);
+void move_city(short sat[], int a, int b, int c, int d, int e);
 
 void set_timer();
 void oot_handler(int signum);
 
 int OUTOFTIME;
 int NBURS;
+int N;
 
 int main(int argc, char *argv[]) {
 
@@ -34,7 +35,6 @@ int main(int argc, char *argv[]) {
     set_timer();                  // Setup timer
 
     srand(time(NULL));
-    int N;
     scanf("%d", &N);
 
     float x[N];
@@ -52,12 +52,10 @@ int main(int argc, char *argv[]) {
     int dist_size = N*(N-1)/2;
     int dist[dist_size];
 
-    if(N <= 40)
+    if(N <= 30)
         NBURS = N-1;
-    else if (N <= 500)
-        NBURS = 40;
     else
-        NBURS = 80;
+        NBURS = 30;
 
     int neighbour_list_size = N*NBURS;
     short neighbours[neighbour_list_size];
@@ -118,11 +116,11 @@ int main(int argc, char *argv[]) {
      */
     short sat[2*N];
     //printf("size of satellite list: %d\n", 2*N);
-    tsp(neighbours,dist,sat,N);
+    tsp(neighbours,dist,sat);
 
     //fprintf(stdout,"Tourlength: %d\n", tourlength);
     //print_sarray(sat, 2*N);
-    print_tour(sat, N);
+    print_tour(sat);
     //print_diag_matrix(dist,N);
 
     //free(neighbours);
@@ -143,7 +141,7 @@ void oot_handler(int signum) {
     OUTOFTIME = 1;
 }
 
-void tsp(short neighbours[], int dist[], short sat[], int N) {
+void tsp(short neighbours[], int dist[], short sat[]) {
     short used[N];
     short node, best, start;
     int found;
@@ -177,7 +175,7 @@ void tsp(short neighbours[], int dist[], short sat[], int N) {
         }
         if(!found) {
             // Backup plan: Check all nodes
-            best = get_nearest(dist,used,node,N);
+            best = get_nearest(dist,used,node);
         }
         best_tour += dist[get_index(node, best)];
         sat[node*2] = best*2;
@@ -194,15 +192,15 @@ void tsp(short neighbours[], int dist[], short sat[], int N) {
 
     tour_length = best_tour;
 
-    //for(k = 0; k < 5; ++k) {
-        //two_opt(dist, sat, N);
-    //}
+    for(k = 0; k < 5; ++k) {
+        two_opt(dist, sat);
+    }
     // while(!OUTOFTIME) {
-        //two_point_five_opt(neighbours, dist, sat, N);
+        two_point_five_opt(neighbours, dist, sat);
     // }
 }
 
-short get_nearest(int dist[], short used[], int i, int N) {
+short get_nearest(int dist[], short used[], int i) {
     short best = -1;
     int j, d;
     int bestDistance = 10e7;
@@ -218,7 +216,7 @@ short get_nearest(int dist[], short used[], int i, int N) {
     return best;
 }
 
-void two_opt(int dist[], short sat[], int N) {
+void two_opt(int dist[], short sat[]) {
     // TODO: Implement 2-opt
     int i, j, inode, jnode, isat, jsat;
 
@@ -272,7 +270,7 @@ void flip_section(short sat[], int isat, int jsat) {
 }
 
 /* 2.5-opt */
-void two_point_five_opt(short neighbours[], int dist[], short sat[], int N) {
+void two_point_five_opt(short neighbours[], int dist[], short sat[]) {
     // _i variables refers to an actual city index. 
     // a-e refers to satellite indexes
     int i, j, a, b, c, d, e, a_i, b_i, c_i, d_i, e_i;
@@ -296,9 +294,9 @@ void two_point_five_opt(short neighbours[], int dist[], short sat[], int N) {
                     continue;
                 // fprintf(stdout, "a: %d, b: %d, c: %d, d: %d, e: %d, i: %d, j: %d\n", a,b,c,d,e, i, j);
                 // fprintf(stdout, "Printing tour:\n");
-                // print_tour(sat, N);
+                // print_tour(sat);
                 if ((dist[get_index(a_i, b_i)] + dist[get_index(b_i, c_i)] + dist[get_index(d_i,e_i)]) > (dist[get_index(a_i,c_i)] + dist[get_index(d_i,b_i)] + dist[get_index(b_i,e_i)])) {
-                    move_city(sat,N,a,b,c,d,e);
+                    move_city(sat,a,b,c,d,e);
                     improvement = 1;
                     i = 0;    // restart outer for-loop
                     break;
@@ -314,7 +312,7 @@ void two_point_five_opt(short neighbours[], int dist[], short sat[], int N) {
  * Changes the tour from a-b-c-d-e to a-c-d-b-e,
  * moving b from between a and c to between d and e.
  */
-void move_city(short sat[], int N, int a, int b, int c, int d, int e) {
+void move_city(short sat[], int a, int b, int c, int d, int e) {
     sat[d] = b;                // D --> B
     sat[b^1] = d^1;            // B <-- D
     sat[b] = e;                // B --> E
@@ -350,17 +348,17 @@ void print_sarray(short array[], int length) {
     printf("]\n");
 }
 
-void print_tour(short array[], int length) {
+void print_tour(short array[]) {
     int i, index, satellite;
     satellite = 0;
-    for(i = 0; i < length; ++i) {
+    for(i = 0; i < N; ++i) {
         index = satellite>>1;
         satellite = array[satellite];
         printf("%d\n", index);
     }
 }
 
-void print_diag_matrix(int matrix[], int N) {
+void print_diag_matrix(int matrix[], int length) {
     int i;
     for(i = 1; i < N; ++i) {
         print_iarray(&matrix[get_index(i, 0)], i);
@@ -372,18 +370,18 @@ int distance(float x1, float y1, float x2, float y2) {
     return nearbyintf(sqrt(pow(x2-x1,2) + pow(y2-y1,2)));
 }
 
+/*
+ * Gets the index in the the distance array (matrix).
+ * We only store the distance in one direction, a --> b since it's
+ * Euclidean dist. i.e. a --> b = b --> a.
+ * The index is calculated using the formula for summing the first x integers.
+ */
 int get_index(int a, int b) {
     // We do not store the trivial 0-distance x --> x
     assert(a != b);
-    // We only store the distance in one direction, a --> b since it's
-    // Euclidean dist. i.e. a --> b = b --> a.
-    // Swap a and b if b > a.
-    if (b > a) {
-        int temp = a;
-        a = b;
-        b = temp;
-    }
-    // Calculate the array index using the formula for summing the first x integers.
+    // (swap a and b if b > a)
+    if (b > a)
+        return b*(b-1)/2+a;
     return a*(a-1)/2+b;
 }
 
