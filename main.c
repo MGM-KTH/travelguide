@@ -229,15 +229,26 @@ void tsp(short neighbours[], int dist[], short sat[]) {
             //printf("\n");
             r1 = rand() % N; // Random start index
             do{
-                r2 = rand() % N-2; // Random amount of steps to switch target
+                r2 = rand() % N/2; // Random amount of steps to switch target
             }while(!OUTOFTIME && r2 < 2);
+            //printf("steps = %d\n",r2);
             r1sat = 2*r1;
-            r2sat = tour[r1sat^1];
+            if(rand()%2){
+                r2sat = tour[r1sat^1];
 
-            for(i = 0; i < r2; ++i) { // O(n) loop!!!
-                if(OUTOFTIME)
-                    break;
-                r2sat = tour[r2sat];
+                for(i = 0; i < r2; ++i) { // O(n) loop!!!
+                    if(OUTOFTIME)
+                        break;
+                    r2sat = tour[r2sat];
+                }
+            }else{
+                r2sat = tour[r1sat];
+                for(i = 0; i < r2; ++i) { // O(n) loop!!!
+                    if(OUTOFTIME)
+                        break;
+                    r2sat = tour[r2sat];
+                }
+                r2sat = r2sat^1;
             }
             if(OUTOFTIME)
                 break;
