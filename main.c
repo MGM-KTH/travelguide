@@ -194,18 +194,23 @@ void tsp(short neighbours[], int dist[], short sat[]) {
     tour_length = best_tour;
     short r1, r2, r1sat, r2sat;
     short tour[2*N];
-    int old_dist, new_dist;
+    int last_length, old_dist, new_dist;
     memcpy(&(tour[0]), &(sat[0]), 2*N*sizeof(short));
 
     /*
      * Optimization loop
      */
     while(!OUTOFTIME) {
+        last_length = tour_length;
         for(k = 0; k < 5; ++k) {
             if(OUTOFTIME)
                 break;
 
             tour_length = two_opt(dist, tour, tour_length);
+            if(last_length==tour_length) {
+                break;
+            }
+            last_length = tour_length;
         }
         tour_length = two_point_five_opt(neighbours, dist, tour, tour_length);
 
@@ -216,7 +221,7 @@ void tsp(short neighbours[], int dist[], short sat[]) {
         }
 
         //printf("randomizing\n");
-        for(k = 0; k < 5; ++k) {
+        for(k = 0; k < 1; ++k) {
             if(OUTOFTIME)
                 break;
             //print_sarray(tour, 2*N);
@@ -252,6 +257,7 @@ void tsp(short neighbours[], int dist[], short sat[]) {
             flip_section(tour, r1sat, r2sat);
         }
     }
+    //printf("tourlength = %d\n", best_tour);
 }
 
 short get_nearest(int dist[], short used[], int i) {
