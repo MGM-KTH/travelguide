@@ -7,16 +7,17 @@
 #include <signal.h>
 #include "main.h"
 
-#define NBURS 5
-#define TWO_POINT_FIVE_OPT_ITERS 2
+#define TWO_POINT_FIVE_OPT_ITERS 50
 #define RAND
 
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
 static int get_index(int a, int b);
-void tsp(int dist[], short tour[], int N);
+static int get_n_index(int i, int j);
+void tsp(short neighbours[], int dist[], short tour[], int N);
+short get_nearest(int dist[], short used[], int i, int N);
 void two_opt(int dist[], short sat[], int N);
-void two_point_five_opt(int dist[], short sat[], int N);
+void two_point_five_opt(short neighbours[], int dist[], short sat[], int N);
 void flip_cities(short sat[], int isat, int jsat);
 void move_city(short sat[], int N, int a, int b, int c, int d, int e);
 
@@ -24,6 +25,7 @@ void set_timer();
 void oot_handler(int signum);
 
 int OUTOFTIME;
+int NBURS;
 
 
 int main(int argc, char *argv[]) {
@@ -38,8 +40,7 @@ int main(int argc, char *argv[]) {
 
     float x[N];
     float y[N];
-    int i, j;
-    //int k; // Unused atm. Used for neighbour list loop.
+    int i, j, k;
 
     // Read coordinates from stdin
     for(i = 0; i < N; ++i) {
@@ -52,59 +53,55 @@ int main(int argc, char *argv[]) {
     int dist_size = N*(N-1)/2;
     int dist[dist_size];
 
-    /*
-    short **neighbours = malloc(sizeof(short)*N*NBURS);
-    for(i = 0; i < NBURS; ++i) {
-        neighbours[0][i] = -1;
+    if(N <= 40)
+        NBURS = N-1;
+    else
+        NBURS = 40;
+
+    int neighbour_list_size = N*NBURS;
+    short neighbours[neighbour_list_size];
+    for(i = 0; i < neighbour_list_size; ++i) {
+        neighbours[i] = -1;
     }
-    */
 
     // Calculate pairwise dist
     for(i = 1; i < N; ++i) {
 
         // Piggyback neighbour initialization
-        /*
         for(j = 0; j < NBURS; ++j) {
-            neighbours[i][j] = -1;
+            neighbours[get_n_index(i,j)] = -1;
         }
-        */
 
         for(j = 0; j < i; ++j) {
             dist[get_index(i,j)] = distance(x[i], y[i], x[j], y[j]);
         }
     }
 
-    /*
     // Calculate closest neighbours for every node. Lowest index is closest.
-    int d, node, tmp;
+    int d, node, tmp, neighbour;
     for(i = 0; i < N; ++i) {
         for(j = 0; j < N; ++j) {
             if(i != j) { // Don't check against self
                 node = j;
                 d = dist[get_index(i, j)];
                 for(k = 0; k < NBURS; ++k) {
-                    if(neighbours[i][k]==-1) { // Spot is empty, use and break
-                        neighbours[i][k] = node;
+                    neighbour = neighbours[get_n_index(i,k)];
+                    if(neighbour == -1) { // Spot is empty, use and break
+                        neighbours[get_n_index(i,k)] = node;
                         break;
-                    }else if(d < dist[get_index(i,neighbours[i][k])]) {
+                    }
+                    else if(d < dist[get_index(i,neighbour)]) {
                         // Closer neighbour found! replace old naeighbour and try to move old neighbour to next spot
-                        tmp = neighbours[i][k];
-                        d = dist[get_index(i,neighbours[i][k])];
-                        neighbours[i][k] = node;
+                        tmp = neighbour;
+                        d = dist[get_index(i,neighbour)];
+                        neighbours[get_n_index(i,k)] = node;
                         node = tmp;
                     }
                 }
             }
         }
     }
-    */
 
-    /*
-    for(i = 0; i < N; ++i) {
-        printf("%d ", i);
-        print_sarray(neighbours[i], NBURS);
-    }
-    */
     //print_diag_matrix(dist, N);
 
     /*
@@ -120,7 +117,7 @@ int main(int argc, char *argv[]) {
      */
     short sat[2*N];
     //printf("size of satellite list: %d\n", 2*N);
-    tsp(dist, sat, N);
+    tsp(neighbours,dist,sat,N);
 
     //fprintf(stdout,"Tourlength: %d\n", tourlength);
     //print_sarray(sat, 2*N);
@@ -134,7 +131,7 @@ int main(int argc, char *argv[]) {
 void set_timer() {
      struct itimerval timer;
      timer.it_value.tv_sec = 1;       /* 1 second */
-     timer.it_value.tv_usec = 900000; /* 0.9 seconds */
+     timer.it_value.tv_usec = 800000; /* 0.9 seconds */
      timer.it_interval.tv_sec = 0;
      timer.it_interval.tv_usec = 0; 
 
@@ -145,11 +142,10 @@ void oot_handler(int signum) {
     OUTOFTIME = 1;
 }
 
-void tsp(int dist[], short sat[], int N) {
+void tsp(short neighbours[], int dist[], short sat[], int N) {
     short used[N];
-    short best;
-    short node;
-    short start;
+    short node, best, start;
+    int found;
     int i, j, k;
 
     // Initialize used (visited) array
@@ -158,53 +154,66 @@ void tsp(int dist[], short sat[], int N) {
     }
 
 #ifdef RAND
-    node = rand() % N;
+    start = rand() % N;
 #else
-    node = 0;
+    start = 0;
 #endif
-    start = node;
-    used[node] = 1;
+    used[start] = 1;
+    node = start;
 
-    for(i = 0; i < N; ++i) {
-        best = -1;
-        int d = 0;
-        int bestDistance = 10e7;
-        for(j = 0; j < N; ++j) {
-            if(node != j && used[j] == 0) {
-                d = dist[get_index(node,j)];
-                if(best == -1 || d < bestDistance) {
-                    best = (short) j;
-                    bestDistance = d;
+    for (i = 0; i < N-1; ++i) {
+        found = 0;
+        for (j = 0; j < NBURS; ++j) {
+            // check neighbour list
+            best = neighbours[get_n_index(node,j)];
+            if (best != node) {
+                // fprintf(stdout, "best: %d, node: %d, used: %d\n", best, node, used[best]);
+                if(!used[best]) {
+                    found = 1;
+                    break;
                 }
             }
         }
-        if(best == -1)
-            break;
-
-        //printf("node is %d and best is %d\n", node, best);
-        //printf("writing to %d and %d\n", i*2, (unsigned) (best*2)^1);
-        //print_sarray(used,N);
+        if(!found) {
+            // Backup plan: Check all nodes
+            best = get_nearest(dist,used,node,N);
+        }
         sat[node*2] = best*2;
         sat[(best*2)^1] = (node*2)^1;
         used[best] = 1;
+        // fprintf(stdout, "Using %d\n", best);
         node = best;
     }
 
     // Close the loop, depends on last node value
-    sat[node*2] = start*2;
-    sat[(start*2)^1] = (node*2)^1;
-
-    //print_sarray(sat, 2*N);
-
+    sat[best*2] = start*2;
+    sat[(start*2)^1] = (best*2)^1;
 
     for(k = 0; k < 5; ++k) {
         two_opt(dist, sat, N);
     }
-    while(!OUTOFTIME) {
-        two_point_five_opt(dist, sat, N);
-    }
+    // while(!OUTOFTIME) {
+        two_point_five_opt(neighbours, dist, sat, N);
+    // }
 
     // printf("OUTOFTIME\n");
+}
+
+short get_nearest(int dist[], short used[], int i, int N) {
+
+    short best = -1;
+    int j, d;
+    int bestDistance = 10e7;
+    for(j = 0; j < N; ++j) {
+        if(j != i && used[j] == 0) {
+            d = dist[get_index(i,j)];
+            if(best == -1 || d < bestDistance) {
+                best = (short) j;
+                bestDistance = d;
+            }
+        }
+    }
+    return best;
 }
 
 void two_opt(int dist[], short sat[], int N) {
@@ -264,7 +273,7 @@ void flip_cities(short sat[], int isat, int jsat) {
 }
 
 /* 2.5-opt */
-void two_point_five_opt(int dist[], short sat[], int N) {
+void two_point_five_opt(short neighbours[], int dist[], short sat[], int N) {
     // _i variables refers to an actual city index. 
     // a-e refers to satellite indexes
     int i, j, a, b, c, d, e, a_i, b_i, c_i, d_i, e_i;
@@ -279,8 +288,8 @@ void two_point_five_opt(int dist[], short sat[], int N) {
             a_i = a >> 1;   // Get city indexes
             b_i = b >> 1;
             c_i = c >> 1;
-            for (j = 0; j < (N-1); ++j) {
-                d = sat[j*2]; // Forward node for j
+            for (j = 0; j < NBURS; ++j) {
+                d = sat[neighbours[get_n_index(i,j)]*2]; // Forward node for j
                 e = sat[d];   // Next for d
                 d_i = d >> 1;
                 e_i = e >> 1;
@@ -378,3 +387,9 @@ int get_index(int a, int b) {
     // Calculate the array index using the formula for summing the first x integers.
     return a*(a-1)/2+b;
 }
+
+int get_n_index(int i, int j) {
+    return i*NBURS + j;
+}
+
+
