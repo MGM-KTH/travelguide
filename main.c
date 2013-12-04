@@ -292,11 +292,11 @@ void two_point_five_opt(short neighbours[], int dist[], short sat[], int N) {
                 e_i = e >> 1;
                 if (d_i == a_i || d_i == b_i || d_i == c_i)
                     continue;
-                d = sat[j];
-                e = tour[j+1];
                 // fprintf(stdout, "a: %d, b: %d, c: %d, d: %d, e: %d, i: %d, j: %d\n", a,b,c,d,e, i, j);
-                if ((dist[get_index(a, b)] + dist[get_index(b, c)] + dist[get_index(d,e)]) > (dist[get_index(a,c)] + dist[get_index(d,b)] + dist[get_index(b,e)])) {
-                    move_city(tour,N,b,e,i,j);
+                // fprintf(stdout, "Printing tour:\n");
+                // print_tour(sat, N);
+                if ((dist[get_index(a_i, b_i)] + dist[get_index(b_i, c_i)] + dist[get_index(d_i,e_i)]) > (dist[get_index(a_i,c_i)] + dist[get_index(d_i,b_i)] + dist[get_index(b_i,e_i)])) {
+                    move_city(sat,N,a,b,c,d,e);
                     improvement = 1;
                     i = 0;    // restart outer for-loop
                     break;
@@ -312,27 +312,13 @@ void two_point_five_opt(short neighbours[], int dist[], short sat[], int N) {
  * Changes the tour from a-b-c-d-e to a-c-d-b-e,
  * moving b from between a and c to between d and e.
  */
-void move_city(short tour[], int N, int b, int e, int i, int j) {
-    int m, temp1, temp2;
-    if (i < j) {
-        // Shift the tour to the left, removing the old b
-        for(m = (i+2); m <= j; ++m) {
-            tour[m-1] = tour[m];
-        }
-        // insert new b between j and j+1
-        tour[j] = b; 
-    }
-    else if (i > j) {
-        // insert b after d
-        temp1 = e;
-        tour[j+1] = b;
-        // push to the right until old b, replacing it.
-        for(m = j+2; m <= (i + 1); ++m) {
-            temp2 = tour[m];
-            tour[m] = temp1;
-            temp1 = temp2;
-        }
-    }
+void move_city(short sat[], int N, int a, int b, int c, int d, int e) {
+    sat[d] = b;                // D --> B
+    sat[b^1] = d^1;            // B <-- D
+    sat[b] = e;                // B --> E
+    sat[e^1] = b^1;            // E <-- B
+    sat[a] = c;                // A --> C
+    sat[c^1] = a^1;            // C <-- A
 }
 
 void print_farray(float array[], int length) {
