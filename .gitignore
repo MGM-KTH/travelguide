@@ -33,3 +33,8 @@ main
 
 # Plot project
 plottsp/*
+
+# Kattis stuff
+.kattisrc
+submit.py
+submit.sh
