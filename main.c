@@ -8,7 +8,7 @@
 #include <signal.h>
 #include "main.h"
 
-#define TWO_POINT_FIVE_OPT_ITERS 4
+//#define TWO_POINT_FIVE_OPT_ITERS 1000
 #define RAND
 
 /* Prototypes */
@@ -19,8 +19,13 @@ void tsp(short neighbours[], int dist[], short tour[]);
 short get_nearest(int dist[], short used[], int i);
 int two_opt(int dist[], short sat[], int tourlength);
 int two_point_five_opt(short neighbours[], int dist[], short sat[], int tourlength);
+int three_opt(int dist[], short sat[], int tourlength);
 void flip_section(short sat[], int isat, int jsat);
 void move_city(short sat[], int a, int b, int c, int d, int e);
+void set_bit(bitfield_t bf, int index);
+void clear_bit(bitfield_t bf, int index);
+int get_bit_index(int index);
+int get_bit(bitfield_t bf, int index);
 
 void set_timer();
 void oot_handler(int signum);
@@ -55,10 +60,10 @@ int main(int argc, char *argv[]) {
 
     if (N <= 40)
         NBURS = (N-1)/2;
-    else if (N <= 100)
-        NBURS = 20;
-    else
+    else if (N <= 200)
         NBURS = 30;
+    else
+        NBURS = 40;
 
     int neighbour_list_size = N*NBURS;
     short neighbours[neighbour_list_size];
@@ -204,16 +209,18 @@ void tsp(short neighbours[], int dist[], short sat[]) {
      */
     while(!OUTOFTIME) {
         last_length = tour_length;
-        for(k = 0; k < 4; ++k) {
+        for(k = 0; k < 40; ++k) {
             if(OUTOFTIME)
                 break;
-
             tour_length = two_opt(dist, tour, tour_length);
             if(last_length==tour_length) {
                 break;
             }
             last_length = tour_length;
+
         }
+        if(OUTOFTIME)
+            break;
         tour_length = two_point_five_opt(neighbours, dist, tour, tour_length);
 
         if(tour_length < best_tour) {
@@ -292,6 +299,7 @@ short get_nearest(int dist[], short used[], int i) {
 int two_opt(int dist[], short sat[], int tourlength) {
     // TODO: Implement 2-opt
     int i, j, inode, jnode, isat, jsat;
+    // bitfield_t dlb;
 
 #ifdef RAND
     int start = rand() % N;
@@ -302,6 +310,10 @@ int two_opt(int dist[], short sat[], int tourlength) {
     isat = start*2;  // Get index of forward flow satellite of first node in tour
 
     for(i = start; i < N-2+start; ++i) {
+        // int improvement = 0;
+        // if (get_bit(dlb,inode) == 1)
+        //     continue;
+
         jsat = sat[(start*2)^1]; // Get index of counter flow satellite of last node in tour
         jnode = jsat>>1;         // Get last node in tour
 
@@ -314,21 +326,72 @@ int two_opt(int dist[], short sat[], int tourlength) {
             int new_dist = dist[get_index(inode,j_prev)] + dist[get_index(jnode,i_next)];
 
             if(new_dist < old_dist) {
+                // improvement = 1;
                 tourlength -= old_dist-new_dist;
-                //printf("SWAP!\n");
-                //print_sarray(sat, 2*N);
                 flip_section(sat,isat,jsat);
-                //print_sarray(sat, 2*N);
+                // clear_bit(dlb,inode);
+                // clear_bit(dlb,j_prev);
+                // clear_bit(dlb, jnode);
+                // clear_bit(dlb, i_next);
             }
 
             jsat = sat[jsat];
             jnode = jsat>>1;
         }
+        // if (!improvement)
+        //     set_bit(dlb, inode);
+
         isat = sat[isat];
         inode = isat>>1;
     }
 
     return tourlength;
+}
+
+int three_opt(int dist[], short sat[], int tourlength) {
+    int i,j,k;
+    int new_tourlength = tourlength;
+    for (i = 0; i < N-5; ++i) {
+        // Select first edge
+        for(j = 0; j < N-3; ++j) {
+            // Select second edge
+            for(k = 0; k < N-1; ++k) {
+                // Select third edge
+            }
+        }
+    }
+    return new_tourlength;
+}
+
+int get_bit_index(int index) {
+    return index/(8*sizeof(long));
+}
+
+/*
+ * Returns the value of the bit within its long section.
+ * Example: 10001000 will return 8 for index 3, 128 for index 7, 0 for the rest.
+ */
+int get_bit(bitfield_t bf, int index) {
+    int bindex = get_bit_index(index);
+    int bit_no = index % (8*sizeof(long));
+    if (bf[bindex] & (1 << bit_no)) 
+        return 1;
+    return 0;
+}
+
+/*
+ * Sets bit to 1 at index in the bitfield
+ */
+void set_bit(bitfield_t bf, int index) {
+    int bindex = get_bit_index(index);
+    int bit_no = index % (8*sizeof(long));
+    bf[bindex] |= 1 << bit_no;
+}
+
+void clear_bit(bitfield_t bf, int index) {
+    int bindex = get_bit_index(index);
+    int bit_no = index % (8*sizeof(long));
+    bf[bindex] &= 0 << bit_no;
 }
 
 void flip_section(short sat[], int isat, int jsat) {
@@ -355,8 +418,7 @@ int two_point_five_opt(short neighbours[], int dist[], short sat[], int tourleng
     int i, j, a, b, c, d, e, a_i, b_i, c_i, d_i, e_i;
     int new_tourlength = tourlength;
     int improvement = 1;
-    int iters = 0;
-    while(improvement && iters <= TWO_POINT_FIVE_OPT_ITERS) {
+    while(improvement) {
         improvement = 0;
         for(i = 0; i < (N-2); ++i) {
             a = sat[i*2]; // Forward node for i
@@ -385,7 +447,6 @@ int two_point_five_opt(short neighbours[], int dist[], short sat[], int tourleng
                 }
             }
         }
-        ++iters;
     }
     return new_tourlength;
 }
