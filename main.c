@@ -9,6 +9,7 @@
 #include "main.h"
 
 //#define TWO_POINT_FIVE_OPT_ITERS 1000
+#define THREE_OPT_LIMIT 500
 #define RAND
 
 /* Prototypes */
@@ -20,6 +21,8 @@ short get_nearest(int dist[], short used[], int i);
 int two_opt(int dist[], short sat[], int tourlength);
 int two_point_five_opt(short neighbours[], int dist[], short sat[], int tourlength);
 int three_opt(int dist[], short sat[], int tourlength);
+int three_eval(int a, int b, int c, int d, int e, int f, short sat[], int old_dist);
+void three_swap(int a, int b, int c, int d, int e, int f, short sat[]);
 void flip_section(short sat[], int isat, int jsat);
 void move_city(short sat[], int a, int b, int c, int d, int e);
 void set_bit(bitfield_t bf, int index);
@@ -138,7 +141,7 @@ int main(int argc, char *argv[]) {
 void set_timer() {
      struct itimerval timer;
      timer.it_value.tv_sec = 1;       /* 1 second */
-     timer.it_value.tv_usec = 9e5; /* 0.9 seconds */
+     timer.it_value.tv_usec = 900000; /* 0.9 seconds */
      timer.it_interval.tv_sec = 0;
      timer.it_interval.tv_usec = 0; 
 
@@ -277,6 +280,9 @@ void tsp(short neighbours[], int dist[], short sat[]) {
             flip_section(tour, r1sat, r2sat);
         }
     }
+    if(N <= THREE_OPT_LIMIT) {
+        //tour_length = three_opt(dist, sat, tour_length);
+    }
     //printf("tourlength = %d\n", best_tour);
 }
 
@@ -349,18 +355,65 @@ int two_opt(int dist[], short sat[], int tourlength) {
 }
 
 int three_opt(int dist[], short sat[], int tourlength) {
-    int i,j,k;
-    int new_tourlength = tourlength;
+    int i, j, k, a, b, c, d, i_dist, part_dist, k_dist, old_dist;
+    int isat, i_next, jsat, j_next, ksat, k_next;
+#ifdef RAND
+    isat = rand() % N*2;
+#else
+    isat = 0;
+#endif
     for (i = 0; i < N-5; ++i) {
-        // Select first edge
-        for(j = 0; j < N-3; ++j) {
-            // Select second edge
-            for(k = 0; k < N-1; ++k) {
-                // Select third edge
+        // Select first edge i-i_next
+        i_next = sat[isat];
+        jsat = sat[i_next]; // Prepare jsat = i+2
+        i_dist = dist[get_index(isat>>1, i_next>>1)];
+        for(j = i+2; j < N-3; ++j) {
+            // Select second edge j-j_next
+            j_next = sat[jsat];
+            ksat = sat[j_next]; // Prepare ksat = j+2
+            part_dist = i_dist + dist[get_index(jsat>>1, j_next>>1)];
+            for(k = j+2; k < N-1; ++k) {
+                // Select third edge k-k_next
+                k_next = sat[ksat];
+
+                k_dist = dist[get_index(ksat>>1, k_next>>1)];
+                old_dist = part_dist + k_dist;
+
+                a = three_eval(isat, j_next, ksat, jsat, i_next, k_next, sat, old_dist);
+                b = three_eval(isat, ksat, j_next, i_next, jsat, k_next, sat, old_dist);
+                c = three_eval(isat, jsat, i_next, ksat, j_next, k_next, sat, old_dist);
+                d = three_eval(isat, j_next, ksat, i_next, jsat, k_next, sat, old_dist);
+                
+                if(a|b|c|d) {
+                    if(a && a > b && a > c && a > d){
+                        tourlength -= a;
+                        three_swap(isat, j_next, ksat, jsat, i_next, k_next, sat);
+                    }else if(b && b > a && b > c && b > d){
+                        tourlength -= b;
+                        three_swap(isat, ksat, j_next, i_next, jsat, k_next, sat);
+                    }else if(c && c > a && c > b && c > d){
+                        tourlength -= c;
+                        three_swap(isat, jsat, i_next, ksat, j_next, k_next, sat);
+                    }else{
+                        tourlength -= d;
+                        three_swap(isat, j_next, ksat, i_next, jsat, k_next, sat);
+                    }
+                }
             }
+            jsat = sat[jsat];
         }
+        // Go to next node in tour
+        isat = sat[isat];
     }
-    return new_tourlength;
+    printf("completed one 3-opt\n");
+    return tourlength;
+}
+
+int three_eval(int a, int b, int c, int d, int e, int f, short sat[], int old_dist) {
+    return 0;
+}
+
+void three_swap(int a, int b, int c, int d, int e, int f, short sat[]) {
 }
 
 int get_bit_index(int index) {
