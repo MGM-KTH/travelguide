@@ -131,12 +131,21 @@ Our problem consists of finding such a tour in Euclidean space. This means that 
 \section{Algorithms}
 
 \subsection{Nearest neighbour}
+The nearest neighbour (NN) algorithm was used to calculate a first naive solution upon which local search optimizations could be made.
+The algorithm works by picking a nodes nearest available neighbour as the next node in the tour.
+Every node is marked as visited once it has been used so the tour doesn't revisit any nodes.
+Once all nodes have been visited the tour is complete.
 
 \subsection{Local optimization algorithms}
 When a tour has been calculated, we can perform local optimization by examining parts of the tour.
 
 \subsubsection{2-opt}
-Swap two arcs.
+2-opt is a local search optimization in which pairs of edges are selected andevaluated if they would provide a better tour if they swapped nodes.
+Take two edges A-B and C-D for example.
+If the sum of the two edges A-C and B-D is smaller than the initial sum, then the edges should be swapped.
+At this point the section from B to C should be reversed, so that it is traversed from C to B instead, in order to retain the rest of the tour configuration.
+
+<pic>
 
 \subsubsection{2.5-opt}
 2.5-opt, also known as 2h-opt, works as follows:
@@ -152,6 +161,10 @@ The below image illustrates the concept:
 \includegraphics[scale=0.4]{25opt}
 \end{center}
 
+\subsection{3-opt}
+3-opt works similarly to two opt, the difference being that three edges are chosen for swapping.
+
+<pic>
     
 
 %----------------------------------------------------------------------------------------
@@ -161,14 +174,42 @@ The below image illustrates the concept:
 The program was implemented in the C programming language.
 
 \subsection{Neighbour lists}
-In order to speed up the lookup of a city's shortest neighbours
+Lists of every nodes closest neighbours were calculated at the start in order to speed up certain algorithms.
+The Nearest Neighbour algorithm took advantage of this, as did 2.5-opt.
 
 \subsection{Satellite lists}
-In order to effectively perform the local optimizations a specialized data structure is required. In particular, we need to optimize operations such as reversing a subtour, and moving a city. To move a city, we need a structure that has tour positions that are independent from other parts of the tour. This can be achieved with a doubly linked list since it allows us to easily move individual cities. However, to optimize reversal of a subtour we need something called \emph{satellite lists}. They use ...etc etc.
+In order to effectively perform the local optimizations a specialized data structure is required.
+In particular, we need to optimize operations such as reversing a subtour, and moving a city.
+To move a city, we need a structure that has tour positions that are independent from other parts of the tour.
+This can be achieved with a doubly linked list since it allows us to easily move individual cities.
+
+However, to optimize reversal of a subtour we need something called \emph{satellite lists}.\cite{satellite}
+A satellite list uses two reference values for every node, called satellites.
+They point to satellites of other nodes, one pointing to a satellite which belongs to the next node and the other to a satellite belonging to the previous node.
+The satellites only point to other satellites pointing in the same direction as them.
+This creates two ``flows'' in the satellite list, which are independent from each other but linked in that they are each others reverse.
+
+A satellite list can easliy be implemented using a doubly sized array.
+Each index corresponds to a satellite, and satellites are grouped in pairs by node.
+The value of an index is the index of the satellite that the current satellite points to.
+
+Using this structure, we have the following relationships:\\
+Index of a satellite: $i$\\
+Node of a satellite: $i>>1$\\
+The complement satellite: $i$\^{}1\\
+
+fixa snyggare tabell av ovan\dots
 
 \begin{center}
 \includegraphics[scale=0.3]{satellite}
 \end{center}
+
+This structure provides the ability to reverse a subtour in O(1) time.
+One simply relink the satellites so that the ``forward'' flow links in to the ``reverse'' flow of the subsection, and then link back to the forward flow at the end.
+This operation is mirrored for the complement satellites.
+
+\subsection{Opts}
+blablabla 2-opt = O($n^2$), 3-opt = O($n^3$)
 
 \subsection{Introducing randomness}
 A significant problem with local optimization techiques is the posibility of reaching a local minimum which is suboptimal.
@@ -176,13 +217,15 @@ One solution to this is to ``destroy'' the local minimum by swapping a few rando
 This can help the solution to break away from the local minimum and achieve a better result.
 This cycle of introducing randomness and performing local optimization can be repeated indefinitely providing that the best solution is always saved.
 
+We also found that choosing a random starting node for our loops gave better results\dots
+
 %------------------------------------------------------------------------------
 %   SECTION 4
 %-------------------------------------------------------------------------------
 
 \section{Results}
 
-\begin{table}
+\begin{table}[h]
   \centering
     \begin{tabular}{|c|c|c|c|c|}
     \hline
@@ -191,6 +234,7 @@ This cycle of introducing randomness and performing local optimization can be re
     2-opt & 19 \\ \hline
     2.5-opt & 25 \\ \hline
     Random swaps & 33 \\ \hline
+    3-opt & 35 \\ \hline
     \end{tabular}
     \caption{All rows includes features of the ones above}
     \hspace{10pt}
@@ -202,7 +246,13 @@ This cycle of introducing randomness and performing local optimization can be re
 % Nåt generellt om projektet kanske. 
 
 % Nåt om satellite antar jag. Dom är lite dryga.
-All concepts and algorithms used are relatively easy to understand, but they became harder to implement with satellite lists. The satellite lists required us to think carefully when changing the tour.
+All concepts and algorithms used are relatively easy to understand, but they became harder to implement with satellite lists.
+The satellite lists required us to think carefully when changing the tour.
+
+
+We would have liked to try\dots\\
+k-level satellite tree\\
+\dots
 
 % Avsluta med något om hur nöjda vi är?
 
@@ -218,6 +268,7 @@ All concepts and algorithms used are relatively easy to understand, but they bec
 % INSERT GODDAMN DATES!
 \bibitem{algnotes} Notes for the course advanced algorithms - \url{http://www.nada.kth.se/~johanh/algnotes.pdf} <insert date here!>
  
+\bibitem{satellite} Osterman, Colin, et al. \emph{The satellite list and new data structures for symmetric traveling salesman problems.} (2004).
 \end{thebibliography}
 
 \end{document}
