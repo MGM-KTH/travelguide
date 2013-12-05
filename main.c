@@ -7,9 +7,11 @@
 #include <stdlib.h>
 #include <signal.h>
 #include "main.h"
+#include <time.h>
 
-//#define TWO_POINT_FIVE_OPT_ITERS 1000
+#define TWO_POINT_FIVE_OPT_ITERS 4
 #define RAND
+#define TIME_DEBUG 0
 
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
@@ -34,6 +36,12 @@ int OUTOFTIME;
 int NBURS;
 int N;
 
+// Timing
+#if TIME_DEBUG
+clock_t two_opt_time;
+clock_t two_point_five_opt_time;
+#endif
+
 int main(int argc, char *argv[]) {
 
     OUTOFTIME = 0;
@@ -41,6 +49,7 @@ int main(int argc, char *argv[]) {
     set_timer();                  // Setup timer
 
     srand(time(NULL));
+
     scanf("%d", &N);
 
     float x[N];
@@ -61,9 +70,9 @@ int main(int argc, char *argv[]) {
     if (N <= 40)
         NBURS = (N-1)/2;
     else if (N <= 200)
-        NBURS = 30;
+        NBURS = 20;
     else
-        NBURS = 40;
+        NBURS = 30;
 
     int neighbour_list_size = N*NBURS;
     short neighbours[neighbour_list_size];
@@ -120,11 +129,24 @@ int main(int argc, char *argv[]) {
      *
      * Index of a sattelite:             i
      * The node a sattelite belongs to:  i>>1
-     * The companion sattelite:          i^1
+     * The companion satellite:          i^1
      */
     short sat[2*N];
     //printf("size of satellite list: %d\n", 2*N);
+
+#if TIME_DEBUG
+    clock_t start = clock(), diff;
+#endif
     tsp(neighbours,dist,sat);
+#if TIME_DEBUG    
+    diff = clock() - start;
+    int msec = diff * 1000 / CLOCKS_PER_SEC;
+    int two_msec = two_opt_time*1000/CLOCKS_PER_SEC;
+    int two_point_msec = two_point_five_opt_time*1000/CLOCKS_PER_SEC;
+    printf("Time spent in TSP: %d seconds %d milliseconds\n", msec/1000, msec%1000);
+    printf("Time spent in 2-opt: %d seconds %d milliseconds\n", two_msec/1000, two_msec%1000);
+    printf("Time spent in 2.5-opt: %d seconds %d milliseconds\n", two_point_msec/1000, two_point_msec%1000);
+#endif    
 
     //fprintf(stdout,"Tourlength: %d\n", tourlength);
     //print_sarray(sat, 2*N);
@@ -138,7 +160,7 @@ int main(int argc, char *argv[]) {
 void set_timer() {
      struct itimerval timer;
      timer.it_value.tv_sec = 1;       /* 1 second */
-     timer.it_value.tv_usec = 9e5; /* 0.9 seconds */
+     timer.it_value.tv_usec = 8.96e5; /* 0.9 seconds */
      timer.it_interval.tv_sec = 0;
      timer.it_interval.tv_usec = 0; 
 
@@ -209,7 +231,10 @@ void tsp(short neighbours[], int dist[], short sat[]) {
      */
     while(!OUTOFTIME) {
         last_length = tour_length;
-        for(k = 0; k < 40; ++k) {
+#if TIME_DEBUG
+        clock_t starttime = clock(), diff;
+#endif
+        for(k = 0; k < 2; ++k) {
             if(OUTOFTIME)
                 break;
             tour_length = two_opt(dist, tour, tour_length);
@@ -217,11 +242,22 @@ void tsp(short neighbours[], int dist[], short sat[]) {
                 break;
             }
             last_length = tour_length;
-
         }
+#if TIME_DEBUG
+        diff = clock() - starttime;
+        two_opt_time += diff;
+#endif
+
         if(OUTOFTIME)
             break;
+#if TIME_DEBUG
+        clock_t starttime2 = clock(), diff2;
+#endif
         tour_length = two_point_five_opt(neighbours, dist, tour, tour_length);
+#if TIME_DEBUG
+        diff2 = clock() - starttime2;
+        two_point_five_opt_time += diff2;
+#endif
 
         if(tour_length < best_tour) {
             //printf("found better tourlength = %d\n", tour_length);
@@ -418,17 +454,25 @@ int two_point_five_opt(short neighbours[], int dist[], short sat[], int tourleng
     int i, j, a, b, c, d, e, a_i, b_i, c_i, d_i, e_i;
     int new_tourlength = tourlength;
     int improvement = 1;
-    while(improvement) {
+    int iters = 0;
+    while(improvement && iters < TWO_POINT_FIVE_OPT_ITERS) {
+        ++iters;
         improvement = 0;
-        for(i = 0; i < (N-2); ++i) {
-            a = sat[i*2]; // Forward node for i
+
+        #ifdef RAND
+            int start = rand() % N;
+        #else
+            int start = 0;
+        #endif
+        for(i = start; i < (N-2+start); ++i) {
+            a = sat[(i%N)*2]; // Forward node for i
             b = sat[a];   // Next for a
             c = sat[b];
             a_i = a >> 1;   // Get city indexes
             b_i = b >> 1;
             c_i = c >> 1;
             for (j = 0; j < NBURS; ++j) {
-                d = sat[neighbours[get_n_index(i,j)]*2]; // close neighbour
+                d = sat[neighbours[get_n_index(i%N,j)]*2]; // close neighbour
                 e = sat[d];   // Next for d
                 d_i = d >> 1;
                 e_i = e >> 1;
