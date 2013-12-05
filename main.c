@@ -8,7 +8,7 @@
 #include <signal.h>
 #include "main.h"
 
-#define TWO_POINT_FIVE_OPT_ITERS 50
+#define TWO_POINT_FIVE_OPT_ITERS 4
 #define RAND
 
 /* Prototypes */
@@ -53,8 +53,10 @@ int main(int argc, char *argv[]) {
     int dist_size = N*(N-1)/2;
     int dist[dist_size];
 
-    if(N <= 30)
-        NBURS = N-1;
+    if (N <= 40)
+        NBURS = (N-1)/2;
+    else if (N <= 100)
+        NBURS = 20;
     else
         NBURS = 30;
 
@@ -131,7 +133,7 @@ int main(int argc, char *argv[]) {
 void set_timer() {
      struct itimerval timer;
      timer.it_value.tv_sec = 1;       /* 1 second */
-     timer.it_value.tv_usec = 800000; /* 0.9 seconds */
+     timer.it_value.tv_usec = 9e5; /* 0.9 seconds */
      timer.it_interval.tv_sec = 0;
      timer.it_interval.tv_usec = 0; 
 
@@ -202,7 +204,7 @@ void tsp(short neighbours[], int dist[], short sat[]) {
      */
     while(!OUTOFTIME) {
         last_length = tour_length;
-        for(k = 0; k < 5; ++k) {
+        for(k = 0; k < 4; ++k) {
             if(OUTOFTIME)
                 break;
 
