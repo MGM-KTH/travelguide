@@ -23,8 +23,6 @@ short get_nearest(int dist[], short used[], int i);
 int two_opt(int dist[], short sat[], int tourlength);
 int two_point_five_opt(short neighbours[], int dist[], short sat[], int tourlength);
 int three_opt(int dist[], short sat[], int tourlength);
-int three_eval(int a, int b, int c, int d, int e, int f, int dist[], int old_dist);
-void three_swap(int a, int b, int c, int d, int e, int f, short sat[]);
 void flip_section(short sat[], int isat, int jsat);
 void move_city(short sat[], int a, int b, int c, int d, int e);
 void set_bit(bitfield_t bf, int index);
@@ -163,7 +161,7 @@ int main(int argc, char *argv[]) {
 void set_timer() {
      struct itimerval timer;
      timer.it_value.tv_sec = 1;       /* 1 second */
-     timer.it_value.tv_usec = 700000; /* 0.9 seconds */
+     timer.it_value.tv_usec = 800000; /* 0.9 seconds */
      timer.it_interval.tv_sec = 0;
      timer.it_interval.tv_usec = 0; 
 
@@ -251,17 +249,17 @@ void tsp(short neighbours[], int dist[], short sat[]) {
         two_opt_time += diff;
 #endif
 
-        if(OUTOFTIME)
-            break;
 #if TIME_DEBUG
         clock_t starttime2 = clock(), diff2;
 #endif
-        tour_length = two_point_five_opt(neighbours, dist, tour, tour_length);
+        if(!OUTOFTIME)
+            tour_length = two_point_five_opt(neighbours, dist, tour, tour_length);
 #if TIME_DEBUG
         diff2 = clock() - starttime2;
         two_point_five_opt_time += diff2;
 #endif
-        tour_length = three_opt(dist, tour, tour_length);
+        if(!OUTOFTIME)
+            tour_length = three_opt(dist, tour, tour_length);
 
         if(tour_length < best_tour) {
             //printf("found better tourlength = %d\n", tour_length);
@@ -395,7 +393,7 @@ int two_opt(int dist[], short sat[], int tourlength) {
 }
 
 int three_opt(int dist[], short sat[], int tourlength) {
-    int i, j, k, a, b, c, d, i_dist, part_dist, k_dist, old_dist;
+    int i, j, k, a, b, c, d, i_dist, part_dist, k_dist, old_dist, i_j, i_jn, in_jn, k_in, j_kn, i_k, in_kn, j_k, jn_kn, inode, innode, jnode, jnnode, knode, knnode;
     int isat, i_next, jsat, j_next, ksat, k_next;
 #ifdef RAND
     isat = rand() % N*2;
@@ -408,27 +406,60 @@ int three_opt(int dist[], short sat[], int tourlength) {
         i_next = sat[isat];
         jsat = sat[i_next]; // Prepare jsat = i+2
         i_dist = dist[get_index(isat>>1, i_next>>1)];
+
+        // precal
+        inode = isat>>1;
+        innode = i_next>>1;
+
         for(j = i+2; j < N-3; ++j) {
             // Select second edge j-j_next
             j_next = sat[jsat];
             ksat = sat[j_next]; // Prepare ksat = j+2
             part_dist = i_dist + dist[get_index(jsat>>1, j_next>>1)];
+
+            // precal stuff
+            i_jn = dist[get_index(isat>>1, j_next>>1)];
+            i_j = dist[get_index(isat>>1, jsat>>1)];
+            in_jn = dist[get_index(i_next>>1, j_next>>1)];
+
+            jnode = jsat>>1;
+            jnnode = j_next>>1;
+
             for(k = j+2; k < N-1; ++k) {
+                a = 0;
+                b = 0;
+                c = 0;
+                d = 0;
+
                 // Select third edge k-k_next
                 k_next = sat[ksat];
 
-                k_dist = dist[get_index(ksat>>1, k_next>>1)];
+                knode = ksat>>1;
+                knnode = k_next>>1;
+
+                k_dist = dist[get_index(knode, knnode)];
                 old_dist = part_dist + k_dist;
 
-                a = three_eval(isat, j_next, ksat, jsat, i_next, k_next, dist, old_dist);
-                b = three_eval(isat, ksat, j_next, i_next, jsat, k_next, dist, old_dist);
-                c = three_eval(isat, jsat, i_next, ksat, j_next, k_next, dist, old_dist);
-                d = three_eval(isat, j_next, ksat, i_next, jsat, k_next, dist, old_dist);
-                
+                k_in = dist[get_index(knode, innode)];
+                i_k = dist[get_index(inode, knode)];
+                j_k = dist[get_index(jnode, knode)];
+                j_kn = dist[get_index(jnode, knnode)];
+                in_kn = dist[get_index(innode, knnode)];
+                jn_kn = dist[get_index(jnnode, knnode)];
+
+                if(i_jn + j_k + in_kn < old_dist)
+                    a = old_dist - (i_jn + j_k + in_kn);
+                if(i_k + in_jn + j_kn < old_dist)
+                    b = old_dist - (i_k + in_jn + j_kn);
+                if(i_j + k_in + jn_kn < old_dist)
+                    c = old_dist - (i_j + k_in + jn_kn);
+                if(i_jn + k_in + j_kn < old_dist)
+                    d = old_dist - (i_jn + k_in + j_kn);
+
+                // HERE BE BLACK MAGIC
                 if(a|b|c|d) {
                     if(a && a > b && a > c && a > d){
                         tourlength -= a;
-                        //three_swap(isat, j_next, ksat, jsat, i_next, k_next, sat);
 
                         sat[isat] = j_next;
                         sat[j_next^1] = isat^1;
@@ -439,9 +470,8 @@ int three_opt(int dist[], short sat[], int tourlength) {
                         sat[i_next^1] = k_next;
                         sat[k_next^1] = i_next;
 
-                    }else if(b && b > a && b > c && b > d){
+                    }else if(b && b > c && b > d){
                         tourlength -= b;
-                        //three_swap(isat, ksat, j_next, i_next, jsat, k_next, sat);
 
                         sat[isat] = ksat^1;
                         sat[ksat] = isat^1;
@@ -452,9 +482,8 @@ int three_opt(int dist[], short sat[], int tourlength) {
                         sat[jsat] = k_next;
                         sat[k_next^1] = jsat^1;
 
-                    }else if(c && c > a && c > b && c > d){
+                    }else if(c && c > d){
                         tourlength -= c;
-                        //three_swap(isat, jsat, i_next, ksat, j_next, k_next, sat);
 
                         sat[isat] = jsat^1;
                         sat[jsat] = isat^1;
@@ -467,7 +496,6 @@ int three_opt(int dist[], short sat[], int tourlength) {
 
                     }else{
                         tourlength -= d;
-                        //three_swap(isat, j_next, ksat, i_next, jsat, k_next, sat);
 
                         sat[isat] = j_next;
                         sat[j_next^1] = isat^1;
@@ -492,61 +520,6 @@ int three_opt(int dist[], short sat[], int tourlength) {
         isat = sat[isat];
     }
     return tourlength;
-}
-
-int three_eval(int a, int b, int c, int d, int e, int f, int dist[], int old_dist) {
-
-    int new_dist = dist[get_index(a>>1, b>>1)] + dist[get_index(c>>1, d>>1)] + dist[get_index(e>>1, f>>1)];
-    
-    if(new_dist < old_dist){
-        //printf("returning better dist! old = %d new = %d\n", old_dist, new_dist);
-        return old_dist-new_dist;
-    }
-    else
-        return 0;
-}
-
-void three_swap(int a, int b, int c, int d, int e, int f, short sat[]) {
-    /*
-
-    int a_next = sat[a];
-    int b_prev = sat[b^1];
-
-    int c_next = sat[c];
-    int d_prev = sat[d^1];
-
-    int e_next = sat[e];
-    int f_prev = sat[f^1];
-
-    print_tour(sat);
-    print_sarray(sat, 2*N);
-
-    sat[a] = b;
-    sat[b^1] = a^1;
-
-    sat[c] = d;
-    sat[d^1] = c^1;
-
-    sat[e] = f;
-    sat[f^1] = e^1;
-
-    printf("a = %d, b = %d, c = %d, d = %d, e = %d, f = %d\n", a, b, c, d, e, f);
-    printf("an = %d, bn = %d, cn = %d, dn = %d, en = %d, fn = %d\n", a>>1, b>>1, c>>1, d>>1, e>>1, f>>1);
-
-    print_sarray(sat, 2*N);
-
-    // Get satellites for next/prev
-    int i_next = sat[isat];
-    int j_prev = sat[jsat];
-
-    // Set satellites in i and j
-    sat[isat] = j_prev;
-    sat[jsat] = i_next;
-
-    // Set satellites in i+1 and j-1
-    sat[i_next^1] = jsat^1;
-    sat[j_prev^1] = isat^1;
-    */
 }
 
 int get_bit_index(int index) {
