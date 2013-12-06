@@ -70,11 +70,11 @@ int main(int argc, char *argv[]) {
     int dist[dist_size];
 
     if (N <= 40)
-        NBURS = (N-1)/2;
+        NBURS = (N-1);
     else if (N <= 200)
-        NBURS = 20;
-    else
         NBURS = 30;
+    else
+        NBURS = 40;
 
     int neighbour_list_size = N*NBURS;
     short neighbours[neighbour_list_size];
@@ -585,7 +585,6 @@ int two_point_five_opt(short neighbours[], int dist[], short sat[], int tourleng
     // _i variables refers to an actual city index. 
     // a-e refers to satellite indexes
     int i, j, a, b, c, d, e, a_i, b_i, c_i, d_i, e_i;
-    int new_tourlength = tourlength;
     int improvement = 1;
     int iters = 0;
     while(improvement && iters < TWO_POINT_FIVE_OPT_ITERS) {
@@ -618,14 +617,14 @@ int two_point_five_opt(short neighbours[], int dist[], short sat[], int tourleng
                 if (diff > 0) {
                     move_city(sat,a,b,c,d,e);
                     improvement = 1;
-                    new_tourlength -= diff;
+                    tourlength -= diff;
                     i = 0;    // restart outer for-loop
                     break;
                 }
             }
         }
     }
-    return new_tourlength;
+    return tourlength;
 }
 
 /*
