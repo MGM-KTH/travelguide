@@ -175,7 +175,7 @@ The program starts with a Nearest neighbour search, giving us a starting point f
 
 \subsection{Neighbour lists}
 Lists of every nodes closest neighbours were calculated at the start in order to speed up certain algorithms.
-The Nearest Neighbour algorithm took advantage of this, as did 2.5-opt.
+The Nearest Neighbour algorithm took advantage of this, as did 2.5-opt. When using neighbour lists, only a small combination of cities is checked, but they often provide good estimates of good paths between cities and the tradeoff is often worth it in practice.
 
 \subsection{Satellite lists}
 In order to effectively perform the local optimizations a specialized data structure is required.
@@ -215,9 +215,7 @@ All k-opt optimizations had the possibility to randomize their starting point.
 
 2-opt = O($n^2$), 
 
-% Oklart om sån här text borde stå under "implementation". Tänkte att neighbour-list detaljen borde göra det iaf,
-% och isf är det svårt att inte säga något mer efter det.
-2.5-opt was implemented using neighbour lists. This reduced its time complexity from O($n^2$) to O($n*nl$) where $nl$ is the length of a neighbour list. This means that it does not check every combination of cities, but since neighbour lists provide good guesses the tradeoff often works well in practice.
+2.5-opt was implemented using neighbour lists. This reduced its time complexity from O($n^2$) to O($n\times nl$) where $nl$ is the length of a neighbour list.
 
 3-opt = O($n^3$)
 
@@ -253,6 +251,8 @@ Every algorithm led to improvements, and
   \end{table}
 
 \textsuperscript{*}Kattis ID for the best submission: \href{https://kth.kattis.scrool.se/submission?id=469874}{469874}
+
+% TODO: skriva om storlek på neighbour lists!!! 30-40 är bäst för största indatan!
 
 
 
