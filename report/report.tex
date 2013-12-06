@@ -199,13 +199,6 @@ A satellite list can easliy be implemented using a doubly sized array.
 Each index corresponds to a satellite, and satellites are grouped in pairs by node.
 The value of an index is the index of the satellite that the current satellite points to.
 
-Using this structure, we have the following relationships:\\
-Index of a satellite: $i$\\
-Node of a satellite: $i>>1$\\
-The complement satellite: $i$\^{}1
-
-fixa snyggare tabell av ovan\dots
-
 This structure provides the ability to reverse a subtour in O(1) time.
 One simply relink the satellites so that the ``forward'' flow links in to the ``reverse'' flow of the subsection, and then link back to the forward flow at the end.
 This operation is mirrored for the complement satellites.
@@ -213,6 +206,18 @@ This operation is mirrored for the complement satellites.
 \begin{center}
 \includegraphics[scale=0.3]{satellite}
 \end{center}
+
+Using this structure, we can infer the following:\\
+\begin{table}[h]
+  \centering
+  \begin{tabular}{|c|c|}
+    \hline
+    Index of a satellite & $i$ \\ \hline
+    Node of a satellite & $i>>1$ \\ \hline
+    The complement satellite & $i$\^{}1 \\ \hline
+  \end{tabular}
+\end{table}
+
 
 Note that the above image is a depiction of a possible (starting) configuration. The ''satellites'' (indexes 0-9) can point to any other index in the array.
 
