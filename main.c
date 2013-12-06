@@ -21,9 +21,9 @@ static int get_index(int a, int b);
 static int get_n_index(int i, int j);
 void tsp(short neighbours[], int dist[], short tour[]);
 short get_nearest(int dist[], short used[], int i);
-int two_opt(short neighbours[], int dist[], short sat[], int tourlength);
+int two_opt(int dist[], short sat[], int tourlength);
 int two_point_five_opt(short neighbours[], int dist[], short sat[], int tourlength);
-int three_opt(short neighbours[], int dist[], short sat[], int tourlength);
+int three_opt(int dist[], short sat[], int tourlength);
 void flip_section(short sat[], int isat, int jsat);
 void move_city(short sat[], int a, int b, int c, int d, int e);
 void set_bit(bitfield_t bf, int index);
@@ -240,7 +240,7 @@ void tsp(short neighbours[], int dist[], short sat[]) {
         for(k = 0; k < 5; ++k) {
             if(OUTOFTIME)
                 break;
-            tour_length = two_opt(neighbours, dist, tour, tour_length);
+            tour_length = two_opt(dist, tour, tour_length);
             if(last_length==tour_length) {
                 break;
             }
@@ -342,7 +342,7 @@ short get_nearest(int dist[], short used[], int i) {
     return best;
 }
 
-int two_opt(short neighbours[], int dist[], short sat[], int tourlength) {
+int two_opt(int dist[], short sat[], int tourlength) {
     // TODO: Implement 2-opt
     int i, j, inode, jnode, isat, jsat, i_next, j_prev, old_dist, new_dist;
     // bitfield_t dlb;
@@ -394,7 +394,7 @@ int two_opt(short neighbours[], int dist[], short sat[], int tourlength) {
     return tourlength;
 }
 
-int three_opt(short neighbours[], int dist[], short sat[], int tourlength) {
+int three_opt(int dist[], short sat[], int tourlength) {
     int i, j, k, a, b, c, d, i_dist, part_dist, k_dist, old_dist, i_j, i_jn, in_jn, k_in, j_kn, i_k, in_kn, j_k, jn_kn, inode, innode, jnode, jnnode, knode, knnode;
     int isat, i_next, jsat, j_next, ksat, k_next;
 #ifdef RAND
