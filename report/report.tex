@@ -270,9 +270,11 @@ Every algorithm led to improvements, and
 
 % Nåt generellt om projektet kanske. 
 
-The drawback of using a satellite list is that we can't know the absolute position of a city in the tour without traversing the entire list. This means that two randomly chosen nodes can't be used directly when reversing a subtour since we don't know which one comes first. This caused problems with neighbour lists since this means that we can't use them where swapping is needed without introducing the overhead of traversing the entire tour to find their orientation.
+The drawback of using a satellite list is that we can't know the direction of a city's satellites relative to another city without traversing the subtour between them.
+This means that two randomly chosen nodes can't be used directly when reversing a subtour since we won't know which satellites should be remapped and to where in order to retain flow integrity.
+This caused problems with neighbour lists since this means that we can't use them where swapping is needed without introducing the overhead of traversing the entire tour to find their orientation.
 
-However, both Nearest Neighbour and 2.5-opt was able to utilize neighbour lists since there is no subtour swapping involved in these algorithms.
+However, both Nearest Neighbour and 2.5-opt was able to utilize neighbour lists since there is no subtour reversal involved in these algorithms.
 
 % Nåt om satellite antar jag. Dom är lite dryga.
 All concepts and algorithms used are relatively easy to understand, but they became harder to implement with satellite lists.
@@ -280,7 +282,7 @@ The satellite lists required us to think carefully when changing the tour.
 
 
 Given more time we would have liked to implement a k-level tree, or a k-level satellite tree.
-This would have allowed us to, theoretically, speed up both 2-opt and 3-opt with the usage of neighbour lists.
+A k-level tree enables O($\log{n}$) traversal time, which would have allowed us to theoretically speed up both 2-opt and 3-opt with the usage of neighbour lists.
 
 Using k-level trees we could have used stem-and-cycle ejection chain algorithms, which are said to be the best known local search methods for TSP.\cite{stem-cycle}
 
