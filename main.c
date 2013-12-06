@@ -10,9 +10,10 @@
 #include <time.h>
 
 #define TWO_POINT_FIVE_OPT_ITERS 4
-#define THREE_OPT_LIMIT 600
+#define THREE_OPT_LIMIT 1000
 #define RAND
 #define TIME_DEBUG 0
+//#define KSATFIX
 
 /* Prototypes */
 static int distance(float x1, float y1, float x2, float y2);
@@ -161,7 +162,7 @@ int main(int argc, char *argv[]) {
 void set_timer() {
      struct itimerval timer;
      timer.it_value.tv_sec = 1;       /* 1 second */
-     timer.it_value.tv_usec = 800000; /* 0.9 seconds */
+     timer.it_value.tv_usec = 900000; /* 0.9 seconds */
      timer.it_interval.tv_sec = 0;
      timer.it_interval.tv_usec = 0; 
 
@@ -258,7 +259,7 @@ void tsp(short neighbours[], int dist[], short sat[]) {
         diff2 = clock() - starttime2;
         two_point_five_opt_time += diff2;
 #endif
-        if(!OUTOFTIME)
+        if(!OUTOFTIME && THREE_OPT_LIMIT >= N)
             tour_length = three_opt(dist, tour, tour_length);
 
         if(tour_length < best_tour) {
@@ -342,7 +343,7 @@ short get_nearest(int dist[], short used[], int i) {
 
 int two_opt(int dist[], short sat[], int tourlength) {
     // TODO: Implement 2-opt
-    int i, j, inode, jnode, isat, jsat;
+    int i, j, inode, jnode, isat, jsat, i_next, j_prev, old_dist, new_dist;
     // bitfield_t dlb;
 
 #ifdef RAND
@@ -362,12 +363,12 @@ int two_opt(int dist[], short sat[], int tourlength) {
         jnode = jsat>>1;         // Get last node in tour
 
         for(j = N-1+start; j > i+2; --j) {
-            int i_next = sat[isat]>>1; // Get next node index from forward flow satellite
-            int j_prev = sat[jsat]>>1; // Get prev node index from backward flow satellite
+            i_next = sat[isat]>>1; // Get next node index from forward flow satellite
+            j_prev = sat[jsat]>>1; // Get prev node index from backward flow satellite
             //printf("i = %d i_next = %d j = %d j_prev = %d\n", inode, i_next, jnode, j_prev);
             //printf("isat = %d jsat = %d\n", isat, jsat);
-            int old_dist = dist[get_index(inode,i_next)] + dist[get_index(jnode,j_prev)];
-            int new_dist = dist[get_index(inode,j_prev)] + dist[get_index(jnode,i_next)];
+            old_dist = dist[get_index(inode,i_next)] + dist[get_index(jnode,j_prev)];
+            new_dist = dist[get_index(inode,j_prev)] + dist[get_index(jnode,i_next)];
 
             if(new_dist < old_dist) {
                 // improvement = 1;
@@ -425,7 +426,13 @@ int three_opt(int dist[], short sat[], int tourlength) {
             jnode = jsat>>1;
             jnnode = j_next>>1;
 
+#ifdef KSATFIX
             for(k = j+2; k < N-1; ++k) {
+#else
+            for(k = j+2; k < j+3; ++k) {
+#endif
+                if(OUTOFTIME)
+                    return tourlength;
                 a = 0;
                 b = 0;
                 c = 0;
@@ -510,6 +517,9 @@ int three_opt(int dist[], short sat[], int tourlength) {
                     restart = 1;
                     break;
                 }
+#ifdef KSATFIX
+                ksat = sat[ksat];
+#endif
             }
             if(restart)
                 break;
