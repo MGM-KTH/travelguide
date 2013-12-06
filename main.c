@@ -20,15 +20,16 @@ static int get_index(int a, int b);
 static int get_n_index(int i, int j);
 void tsp(short neighbours[], int dist[], short tour[]);
 short get_nearest(int dist[], short used[], int i);
-int two_opt(int dist[], short sat[], int tourlength);
+int two_opt(short neighbours[], int dist[], short sat[], int tourlength);
 int two_point_five_opt(short neighbours[], int dist[], short sat[], int tourlength);
-int three_opt(int dist[], short sat[], int tourlength);
+int three_opt(short neighbours[], int dist[], short sat[], int tourlength);
 void flip_section(short sat[], int isat, int jsat);
 void move_city(short sat[], int a, int b, int c, int d, int e);
 void set_bit(bitfield_t bf, int index);
 void clear_bit(bitfield_t bf, int index);
 int get_bit_index(int index);
 int get_bit(bitfield_t bf, int index);
+int is_neighbour(short neighbours[], int dist[], int a, int b);
 
 void set_timer();
 void oot_handler(int signum);
@@ -161,7 +162,7 @@ int main(int argc, char *argv[]) {
 void set_timer() {
      struct itimerval timer;
      timer.it_value.tv_sec = 1;       /* 1 second */
-     timer.it_value.tv_usec = 800000; /* 0.9 seconds */
+     timer.it_value.tv_usec = 900000; /* 0.9 seconds */
      timer.it_interval.tv_sec = 0;
      timer.it_interval.tv_usec = 0; 
 
@@ -235,10 +236,10 @@ void tsp(short neighbours[], int dist[], short sat[]) {
 #if TIME_DEBUG
         clock_t starttime = clock(), diff;
 #endif
-        for(k = 0; k < 2; ++k) {
+        for(k = 0; k < 5; ++k) {
             if(OUTOFTIME)
                 break;
-            tour_length = two_opt(dist, tour, tour_length);
+            tour_length = two_opt(neighbours, dist, tour, tour_length);
             if(last_length==tour_length) {
                 break;
             }
@@ -259,7 +260,7 @@ void tsp(short neighbours[], int dist[], short sat[]) {
         two_point_five_opt_time += diff2;
 #endif
         if(!OUTOFTIME)
-            tour_length = three_opt(dist, tour, tour_length);
+            tour_length = three_opt(neighbours, dist, tour, tour_length);
 
         if(tour_length < best_tour) {
             //printf("found better tourlength = %d\n", tour_length);
@@ -340,7 +341,7 @@ short get_nearest(int dist[], short used[], int i) {
     return best;
 }
 
-int two_opt(int dist[], short sat[], int tourlength) {
+int two_opt(short neighbours[], int dist[], short sat[], int tourlength) {
     // TODO: Implement 2-opt
     int i, j, inode, jnode, isat, jsat;
     // bitfield_t dlb;
@@ -362,8 +363,10 @@ int two_opt(int dist[], short sat[], int tourlength) {
         jnode = jsat>>1;         // Get last node in tour
 
         for(j = N-1+start; j > i+2; --j) {
-            int i_next = sat[isat]>>1; // Get next node index from forward flow satellite
             int j_prev = sat[jsat]>>1; // Get prev node index from backward flow satellite
+            // if(!is_neighbour(neighbours, dist, inode, j_prev))
+            //     continue;
+            int i_next = sat[isat]>>1; // Get next node index from forward flow satellite
             //printf("i = %d i_next = %d j = %d j_prev = %d\n", inode, i_next, jnode, j_prev);
             //printf("isat = %d jsat = %d\n", isat, jsat);
             int old_dist = dist[get_index(inode,i_next)] + dist[get_index(jnode,j_prev)];
@@ -392,7 +395,7 @@ int two_opt(int dist[], short sat[], int tourlength) {
     return tourlength;
 }
 
-int three_opt(int dist[], short sat[], int tourlength) {
+int three_opt(short neighbours[], int dist[], short sat[], int tourlength) {
     int i, j, k, a, b, c, d, i_dist, part_dist, k_dist, old_dist, i_j, i_jn, in_jn, k_in, j_kn, i_k, in_kn, j_k, jn_kn, inode, innode, jnode, jnnode, knode, knnode;
     int isat, i_next, jsat, j_next, ksat, k_next;
 #ifdef RAND
@@ -438,6 +441,9 @@ int three_opt(int dist[], short sat[], int tourlength) {
 
                 knode = ksat>>1;
                 knnode = k_next>>1;
+
+                // if(!is_neighbour(neighbours, dist, inode, knode) || !is_neighbour(neighbours,dist, knode,innode))
+                //    continue;
 
                 k_dist = dist[get_index(knode, knnode)];
                 old_dist = part_dist + k_dist;
@@ -596,6 +602,8 @@ int two_point_five_opt(short neighbours[], int dist[], short sat[], int tourleng
             b_i = b >> 1;
             c_i = c >> 1;
             for (j = 0; j < NBURS; ++j) {
+                if(OUTOFTIME)
+                    break;
                 d = sat[neighbours[get_n_index(i%N,j)]*2]; // close neighbour
                 e = sat[d];   // Next for d
                 d_i = d >> 1;
@@ -631,6 +639,25 @@ void move_city(short sat[], int a, int b, int c, int d, int e) {
     sat[e^1] = b^1;            // E <-- B
     sat[a] = c;                // A --> C
     sat[c^1] = a^1;            // C <-- A
+}
+
+int is_neighbour(short neighbours[], int dist[], int a, int b) {
+    int temp, imid;
+    int imin = 0;
+    int imax = NBURS-1; 
+    int d = dist[get_index(a,b)];
+    while(imax >= imin) {
+        imid = imin + ((imax - imin)/2);
+        temp = neighbours[get_n_index(a,imid)];
+        if (neighbours[get_n_index(a,temp)] == b)
+            return 1;
+        else if (dist[get_index(a,temp)] > d) {
+            imax = imid - 1;
+        }
+        else 
+            imin = imid + 1;
+    }
+    return 0;
 }
 
 void print_farray(float array[], int length) {
@@ -676,6 +703,7 @@ void print_diag_matrix(int matrix[], int length) {
         print_iarray(&matrix[get_index(i, 0)], i);
     }
 }
+
 
 int distance(float x1, float y1, float x2, float y2) {
     // return floor(sqrt(pow(x2-x1, 2) + pow(y2-y1,2)) + 0.5);
