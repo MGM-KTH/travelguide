@@ -102,8 +102,9 @@
 \section*{Statement of collaboration}
 All of the research was done together, and the report was written together.
 Gustaf implemented the initial 2-opt, and Martin implementented the initial 2.5-opt.
-Gustaf did the initial satellite lists and neighbour lists. Gustaf reworked 2-opt to work with satellite lists.
+Gustaf did the initial satellite lists and neighbour list initialization. Gustaf reworked 2-opt to work with satellite lists.
 Martin reworked 2.5-opt to work with satellite lists, and reworked Nearest Neighbour and 2.5-opt to work with with the neighbour lists.
+Gustaf implemented the initial 3-opt algorithm.
 
 \section{Introduction}
 
@@ -135,7 +136,7 @@ Every node is marked as visited once it has been used so the tour doesn't revisi
 Once all nodes have been visited the tour is complete.
 
 \subsection{Local optimization algorithms}
-When a tour has been calculated, we can perform local optimization by examining parts of the tour. We are not guaranteed to find optimal solutions by iterating these indefinitely since they can get stuck in local minimums, but used correctly they can provide significant improvements.
+When a tour has been calculated, we can apply local optimization techniques by examining parts of the tour. We are not guaranteed to find optimal solutions by iterating these indefinitely since they can get stuck in local minimums, but used correctly they can provide significant improvements.
 
 \subsubsection{2-opt}
 2-opt is a local search optimization in which pairs of edges are selected andevaluated if they would provide a better tour if they swapped nodes.
@@ -161,6 +162,11 @@ The below image illustrates the concept:
 
 \subsection{3-opt}
 3-opt works similarly to two opt, the difference being that three edges are chosen for swapping instead of two.
+Given three edges A-B, C-D and E-F there are 8 unique configurations involving the nodes, of which one is the original configuration.
+Three configurations are covered by the 2-opt algorithm, since they only modify two of the three edges.
+This leaves four different configurations involving modification of all three edges.
+The difference in distance is calculated for each configuration and compared to the others.
+If a configuration leads to a better distance than the original and all the other configuration the swap is performed.
 
 <pic>
     
@@ -172,7 +178,7 @@ The below image illustrates the concept:
 The program was implemented in the C programming language.
 
 The program starts with a Nearest neighbour search, giving us a starting point for local optimizations.
-
+Most of the loops over nodes start with a random node, since it yielded improved results.
 \subsection{Neighbour lists}
 Lists of every nodes closest neighbours were calculated at the start in order to speed up certain algorithms.
 The Nearest Neighbour algorithm took advantage of this, as did 2.5-opt. When using neighbour lists, only a small combination of cities is checked, but they often provide good estimates of good paths between cities and the tradeoff is often worth it in practice.
@@ -183,7 +189,7 @@ In particular, we need to optimize operations such as reversing a subtour, and m
 To move a city, we need a structure that has tour positions that are independent from other parts of the tour.
 This can be achieved with a doubly linked list since it allows us to easily move individual cities.
 
-However, to optimize reversal of a subtour we need something called \emph{satellite lists}.\cite{satellite}
+However, to optimize reversal of a subtour we need something called a \emph{satellite lists}.\cite{satellite}
 A satellite list uses two reference values for every node, called satellites.
 They point to satellites of other nodes, one pointing to a satellite which belongs to the next node and the other to a satellite belonging to the previous node.
 The satellites only point to other satellites pointing in the same direction as them.
@@ -213,19 +219,21 @@ Note that the above image is a depiction of a possible (starting) configuration.
 \subsection{Opts}
 All k-opt optimizations had the possibility to randomize their starting point.
 
-2-opt = O($n^2$), 
+The 2-opt algorithm have a complexity of O($n^2$), since we try every possible edge pair.
 
-2.5-opt was implemented using neighbour lists. This reduced its time complexity from O($n^2$) to O($n\times nl$) where $nl$ is the length of a neighbour list.
+2.5-opt was implemented using neighbour lists.
+This reduced its time complexity from O($n^2$) to O($n\times nl$) where $nl$ is the length of a neighbour list.
 
-3-opt = O($n^3$)
+3-opt is O($n^3$) since it iterates over edge triples.
+However, the implementation in our best version had an O($n^2$) algorithm due to a bug.
+The bug caused it to try one edge as the third one, which was the one directly following the second edge.
+When the bug was fixed the result worsened, probably due to the increased complexity.
 
 \subsection{Introducing randomness}
 A significant problem with local optimization techiques is the posibility of reaching a local minimum which is suboptimal.
 One solution to this is to ``destroy'' the local minimum by swapping a few random edges and performing the local search again.
 This can help the solution to break away from the local minimum and achieve a better result.
 This cycle of introducing randomness and performing local optimization can be repeated indefinitely providing that the best solution is always saved.
-
-We also found that choosing a random starting node for our loops gave better results\dots
 
 %------------------------------------------------------------------------------
 %   SECTION 4
