@@ -47,11 +47,6 @@
 \usepackage{graphicx}
 \DeclareGraphicsExtensions{.png,.jpg}
 \usepackage{sectsty}
-
-
-
-
-
 \usepackage{fancyhdr} % Custom headers and footers
 \pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
 
@@ -123,7 +118,10 @@ The traveling salesman problem (TSP) is famous in both theoretical computer scie
     \emph{Given a list of cities and the distance between each pair of cities, what is the shortest possible route that visits each city exactly once and returns to the origin city?}
 \end{center}
 
-Our problem consists of finding such a tour in Euclidean space. This means that a distance from city A to city B is equal to the distance from B to A, and that the triangle inequality holds.
+This combinatorial problem is NP-hard and therefore requires heuristics and approximation algorithms to be approximated within reasonable time for larger instances.
+
+Our problem is a special case of TSP which consists of finding such a tour in Euclidean space. This means that a distance from city A to city B is equal to the distance from B to A, and that the triangle inequality holds. There is no designated origin city, meaning that it can be arbitrarily chosen.
+However, the problem is still NP-hard.
 
 %-------------------------------------------------------------------------------
 % SECTION 2
@@ -137,13 +135,13 @@ Every node is marked as visited once it has been used so the tour doesn't revisi
 Once all nodes have been visited the tour is complete.
 
 \subsection{Local optimization algorithms}
-When a tour has been calculated, we can perform local optimization by examining parts of the tour.
+When a tour has been calculated, we can perform local optimization by examining parts of the tour. We are not guaranteed to find optimal solutions by iterating these indefinitely since they can get stuck in local minimums, but used correctly they can provide significant improvements.
 
 \subsubsection{2-opt}
 2-opt is a local search optimization in which pairs of edges are selected andevaluated if they would provide a better tour if they swapped nodes.
 Take two edges A-B and C-D for example.
 If the sum of the two edges A-C and B-D is smaller than the initial sum, then the edges should be swapped.
-At this point the section from B to C should be reversed, so that it is traversed from C to B instead, in order to retain the rest of the tour configuration.
+At this point the subpath from B to C should be reversed, so that it is traversed from C to B instead, in order to retain the rest of the tour configuration.
 
 <pic>
 
@@ -162,7 +160,7 @@ The below image illustrates the concept:
 \end{center}
 
 \subsection{3-opt}
-3-opt works similarly to two opt, the difference being that three edges are chosen for swapping.
+3-opt works similarly to two opt, the difference being that three edges are chosen for swapping instead of two.
 
 <pic>
     
@@ -172,6 +170,8 @@ The below image illustrates the concept:
 %----------------------------------------------------------------------------------------
 \section{Implementation}
 The program was implemented in the C programming language.
+
+The program starts with a Nearest neighbour search, giving us a starting point for local optimizations.
 
 \subsection{Neighbour lists}
 Lists of every nodes closest neighbours were calculated at the start in order to speed up certain algorithms.
@@ -196,20 +196,30 @@ The value of an index is the index of the satellite that the current satellite p
 Using this structure, we have the following relationships:\\
 Index of a satellite: $i$\\
 Node of a satellite: $i>>1$\\
-The complement satellite: $i$\^{}1\\
+The complement satellite: $i$\^{}1
 
 fixa snyggare tabell av ovan\dots
-
-\begin{center}
-\includegraphics[scale=0.3]{satellite}
-\end{center}
 
 This structure provides the ability to reverse a subtour in O(1) time.
 One simply relink the satellites so that the ``forward'' flow links in to the ``reverse'' flow of the subsection, and then link back to the forward flow at the end.
 This operation is mirrored for the complement satellites.
 
+\begin{center}
+\includegraphics[scale=0.3]{satellite}
+\end{center}
+
+Note that the above image is a depiction of a possible (starting) configuration. The ''satellites'' (indexes 0-9) can point to any other index in the array.
+
 \subsection{Opts}
-blablabla 2-opt = O($n^2$), 3-opt = O($n^3$)
+All k-opt optimizations had the possibility to randomize their starting point.
+
+2-opt = O($n^2$), 
+
+% Oklart om sån här text borde stå under "implementation". Tänkte att neighbour-list detaljen borde göra det iaf,
+% och isf är det svårt att inte säga något mer efter det.
+2.5-opt was implemented using neighbour lists. This reduced its time complexity from O($n^2$) to O($n*nl$) where $nl$ is the length of a neighbour list. This means that it does not check every combination of cities, but since neighbour lists provide good guesses the tradeoff often works well in practice.
+
+3-opt = O($n^3$)
 
 \subsection{Introducing randomness}
 A significant problem with local optimization techiques is the posibility of reaching a local minimum which is suboptimal.
@@ -225,6 +235,8 @@ We also found that choosing a random starting node for our loops gave better res
 
 \section{Results}
 
+Every algorithm led to improvements, and 
+
 \begin{table}[h]
   \centering
     \begin{tabular}{|c|c|c|c|c|}
@@ -234,24 +246,36 @@ We also found that choosing a random starting node for our loops gave better res
     2-opt & 19 \\ \hline
     2.5-opt & 25 \\ \hline
     Random swaps & 33 \\ \hline
-    3-opt & 35 \\ \hline
+    3-opt & 36\textsuperscript{*} \\ \hline
     \end{tabular}
-    \caption{All rows includes features of the ones above}
+    \caption{Kattis result table. All rows includes all features of the ones above}
     \hspace{10pt}
   \end{table}
+
+\textsuperscript{*}Kattis ID for the best submission: \href{https://kth.kattis.scrool.se/submission?id=469874}{469874}
+
+
+
 
 
 \section{Discussion}
 
 % Nåt generellt om projektet kanske. 
 
+The drawback of using a satellite list is that we can't know the absolute position of a city in the tour without traversing the entire list. This means that two randomly chosen nodes can't be used directly when reversing a subtour since we don't know which one comes first. This caused problems with neighbour lists since this means that we can't use them where swapping is needed without introducing the overhead of traversing the entire tour to find their orientation.
+
+However, both Nearest Neighbour and 2.5-opt was able to utilize neighbour lists since there is no subtour swapping involved in these algorithms.
+
 % Nåt om satellite antar jag. Dom är lite dryga.
 All concepts and algorithms used are relatively easy to understand, but they became harder to implement with satellite lists.
 The satellite lists required us to think carefully when changing the tour.
 
 
-We would have liked to try\dots\\
-k-level satellite tree\\
+Given more time we would have liked to implement a k-level tree, or a k-level satellite tree.
+This would have allowed us to, theoretically, speed up both 2-opt and 3-opt with the usage of neighbour lists.
+
+Using k-level trees we could have used stem-and-cycle ejection chain algorithms, which are said to be the best known local search methods for TSP.\cite{stem-cycle}
+
 \dots
 
 % Avsluta med något om hur nöjda vi är?
@@ -269,6 +293,8 @@ k-level satellite tree\\
 \bibitem{algnotes} Notes for the course advanced algorithms - \url{http://www.nada.kth.se/~johanh/algnotes.pdf} <insert date here!>
  
 \bibitem{satellite} Osterman, Colin, et al. \emph{The satellite list and new data structures for symmetric traveling salesman problems.} (2004).
+
+\bibitem{stem-cycle} Harabor, Daniel, and Philip Kilby. "Informed Heuristics for Guiding Stem-and-Cycle Ejection Chains." arXiv preprint arXiv:1103.3904 (2011).
 \end{thebibliography}
 
 \end{document}
