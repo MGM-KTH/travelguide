@@ -129,8 +129,10 @@ However, the problem is still NP-hard.
 %-------------------------------------------------------------------------------
 \section{Algorithms}
 
+\subsection{Greedy}
+Try all solutions. Pick the best one.
+
 \subsection{Nearest neighbour}
-The nearest neighbour (NN) algorithm was used to calculate a first naive solution upon which local search optimizations could be made.
 The algorithm works by picking a nodes nearest available neighbour as the next node in the tour.
 Every node is marked as visited once it has been used so the tour doesn't revisit any nodes.
 Once all nodes have been visited the tour is complete.
@@ -179,7 +181,7 @@ If a configuration leads to a better distance than the original and all the othe
 \section{Implementation}
 The program was implemented in the C programming language.
 
-The program starts with a Nearest neighbour search, giving us a starting point for local optimizations.
+The nearest neighbour algorithm was used to calculate a first naive solution upon which local search optimizations could be made.
 Most of the loops over nodes start with a random node, since it yielded improved results.
 \subsection{Neighbour lists}
 Lists of every nodes closest neighbours were calculated at the start in order to speed up certain algorithms.
