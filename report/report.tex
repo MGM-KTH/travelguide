@@ -135,10 +135,11 @@ However, the problem is still NP-hard.
 \section{Algorithms}
 
 \subsection{Nearest neighbour}
-The nearest neighbour (NN) algorithm is a greedy strategy. It is very unlikely that it will return the optimal solution, but it find an approximated solution in reasonable time.
+The nearest neighbour (NN) algorithm is a greedy strategy.
+It is very unlikely that it will return the optimal solution, but it finds an approximated solution in reasonable time.
 The heuristic works as follows: 
-Every node is marked as visited once it has been used so the tour doesn't revisit any nodes.
 Pick a node's nearest available neighbour as the next node in the tour.
+Every node is marked as visited once it has been used so the tour doesn't revisit any nodes.
 
 Once all nodes have been visited the tour is complete.
 
@@ -148,7 +149,7 @@ Once all nodes have been visited the tour is complete.
 When a tour has been calculated, we can apply local optimization techniques by examining parts of the tour. We are not guaranteed to find optimal solutions by iterating these indefinitely since they can get stuck in local minimums, but used correctly they can provide significant improvements.
 
 \subsubsection{2-opt}
-2-opt is a local search optimization in which pairs of edges are selected andevaluated if they would provide a better tour if they swapped nodes.
+2-opt is a local search optimization in which pairs of edges are selected and evaluated if they would provide a better tour if they swapped nodes.
 Take two edges A-B and C-D for example.
 If the sum of the two edges A-C and B-D is smaller than the initial sum, then the edges should be swapped.
 At this point the subpath from B to C should be reversed, so that it is traversed from C to B instead, in order to retain the rest of the tour configuration.
@@ -177,9 +178,9 @@ Given three edges A-B, C-D and E-F there are 8 unique configurations involving t
 Three configurations are covered by the 2-opt algorithm, since they only modify two of the three edges.
 This leaves four different configurations involving modification of all three edges.
 The difference in distance is calculated for each configuration and compared to the others.
-If a configuration leads to a better distance than the original and all the other configuration the swap is performed.
+If a configuration leads to a better distance than the original and all the other configurations the swap is performed.
 
-% <pic> Orkar vi? :p Man kan nästan hänvisa till 2-opt.
+% <pic> Orkar vi? :p Man kan nästan hänvisa till 2-opt. mjo iofs...
 
 
 \subsection{Iterative improvement}
@@ -187,7 +188,7 @@ A significant problem with local optimization techiques is the posibility of rea
 One solution to this is to ''destroy'' the local minimum by swapping a few edges and performing the local search again.
 This can help the solution to break away from the local minimum and achieve a better result.
 
-There are several iterative methods that do this, the simplest of which is the randomized iterative improvement which simply switches some random edges and then performs local optimizations again, hoping to find a better result.
+There are several iterative methods that do this, the simplest of which is the randomized iterative improvement which simply swap a couple of random edges and then performs local optimizations again, hoping to find a better result.
 
 \subsubsection{Lin Kernighan}
 Lin Kernighan \cite{LK} is a more structured iterative method which restricts which edges we can swap. 
@@ -218,14 +219,17 @@ The program uses a randomized iterative method.
 The general outline of the program is:
 
 \begin{verbatim}
+NN // Calculate initial tour
 do {
-  NN
   2-opt
   2.5-opt
   save result
   swap randomly selected edges
-} (while improvement)
+} while (not out of time)
+
+return best tour
 \end{verbatim}
+
 
 
 \subsection{Neighbour lists}
@@ -246,10 +250,10 @@ This creates two ``flows'' in the satellite list, which are independent from eac
 
 A satellite list can easliy be implemented using a doubly sized array.
 Each index corresponds to a satellite, and satellites are grouped in pairs by node.
-The value of an index is the index of the satellite that the current satellite points to.
+The value at an index is the index of the satellite that the current satellite points to.
 
 This structure provides the ability to reverse a subtour in O(1) time.
-One simply relink the satellites so that the ``forward'' flow links in to the ``reverse'' flow of the subsection, and then link back to the forward flow at the end.
+One simply relink the satellites so that the ``forward'' flow links in to the ``reverse'' flow at the end of the subsection, and then link back to the forward flow at the other end.
 This operation is mirrored for the complement satellites.
 
 
@@ -286,7 +290,7 @@ This reduced its time complexity from O($n^2$) to O($n\times nl$) where $nl$ is 
 
 3-opt is O($n^3$) since it iterates over edge triples.
 However, the implementation in our best version had an O($n^2$) algorithm due to a bug.
-The bug caused it to try one edge as the third one, which was the one directly following the second edge.
+The bug caused it to try only one edge as the third one, which was the one directly following the second edge.
 When the bug was fixed the result worsened, probably due to the increased complexity.
 
 
@@ -308,13 +312,14 @@ Every algorithm led to improvements, and
     2-opt & 19 \\ \hline
     2.5-opt & 25 \\ \hline
     Random swaps & 33 \\ \hline
-    3-opt & 36.5\textsuperscript{*} \\ \hline
+    3-opt\textsuperscript{*} & 36.5\textsuperscript{**} \\ \hline
     \end{tabular}
     \caption{Kattis result table. All rows includes all features of the ones above}
     \hspace{10pt}
   \end{table}
 
-\textsuperscript{*}Kattis ID for the best submission: \href{https://kth.kattis.scrool.se/submission?id=471066}{471066}
+\textsuperscript{*}This is the 3-opt version containing the bug. See section 3.3.\\
+\textsuperscript{**}Kattis ID for the best submission: \href{https://kth.kattis.scrool.se/submission?id=471066}{471066}
 
 Experiments showed that small neighbour lists gave the best results. Since they need to be sorted they can be expensive to create, and there is therefore an equilibrium to be found where the trade-off is optimal. We didn't try different sizes extensively, but our tests showed that neighbour lists of length 20-40 gave us the best trade-off.
 
