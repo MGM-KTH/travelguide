@@ -191,6 +191,8 @@ The original algorithm performs a restricted 2-opt at each step. This step is th
 The \textbf{one-tree restriction}:
 The length of the spanning tree plus one edge (one-tree) obtained by adding an edge must be less than the length of the best tour so far. \cite{LK2}
 
+Candidate edges are found using 3-opt and possibly 4-opt if no candidates are found using 3-opt.
+
 All k-opts performed are limited using neighbour lists. Neighbour lists are short sorted lists of each node's closest neighbours. When using neighbour lists, only a small combination of cities are checked, but they often provide good estimates of good paths between cities and the trade-off is often worth it in practice.
 
 Lin Kernighan also uses tabu lists which are lists of edges that may not be inserted/removed. How such tabu's are selected varies, but the general idea is to not remove edges that improve the tour, and not reinsert edges that worsen the tour.
