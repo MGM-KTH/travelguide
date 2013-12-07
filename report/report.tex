@@ -129,12 +129,12 @@ However, the problem is still NP-hard.
 %-------------------------------------------------------------------------------
 \section{Algorithms}
 
-\subsection{Greedy}
-Try all solutions. Pick the best one.
-
 \subsection{Nearest neighbour}
-The algorithm works by picking a nodes nearest available neighbour as the next node in the tour.
+The nearest neighbour (NN) algorithm is a greedy strategy. It is very unlikely that it will return the optimal solution, but it find an approximated solution in reasonable time.
+The heuristic works as follows: 
 Every node is marked as visited once it has been used so the tour doesn't revisit any nodes.
+Pick a node's nearest available neighbour as the next node in the tour.
+
 Once all nodes have been visited the tour is complete.
 
 \subsection{Local optimization algorithms}
