@@ -101,10 +101,15 @@
 \hspace{0pt}\\
 \section*{Statement of collaboration}
 All of the research was done together, and the report was written together.
-Gustaf implemented the initial 2-opt, and Martin implementented the initial 2.5-opt.
-Gustaf did the initial satellite lists and neighbour list initialization. Gustaf reworked 2-opt to work with satellite lists.
-Martin reworked 2.5-opt to work with satellite lists, and reworked Nearest Neighbour and 2.5-opt to work with with the neighbour lists.
-Gustaf implemented the initial 3-opt algorithm.
+Gustaf implemented the initial 2-opt, 3-opt and randomized iteration.
+Martin implementented the initial 2.5-opt.
+
+Gustaf did the initial satellite lists and neighbour list initialization and reworked 2-opt to work with satellite lists.
+Martin reworked 2.5-opt to work with satellite lists, and reworked Nearest Neighbour and 2.5-opt to use neighbour lists.
+
+Martin implemented a simple tabu list and don't-look-bits (none of which were used in the final implementation).
+
+
 
 \section{Introduction}
 
@@ -303,13 +308,13 @@ Every algorithm led to improvements, and
     2-opt & 19 \\ \hline
     2.5-opt & 25 \\ \hline
     Random swaps & 33 \\ \hline
-    3-opt & 36\textsuperscript{*} \\ \hline
+    3-opt & 36.5\textsuperscript{*} \\ \hline
     \end{tabular}
     \caption{Kattis result table. All rows includes all features of the ones above}
     \hspace{10pt}
   \end{table}
 
-\textsuperscript{*}Kattis ID for the best submission: \href{https://kth.kattis.scrool.se/submission?id=469874}{469874}
+\textsuperscript{*}Kattis ID for the best submission: \href{https://kth.kattis.scrool.se/submission?id=471066}{471066}
 
 Experiments showed that small neighbour lists gave the best results. Since they need to be sorted they can be expensive to create, and there is therefore an equilibrium to be found where the trade-off is optimal. We didn't try different sizes extensively, but our tests showed that neighbour lists of length 20-40 gave us the best trade-off.
 
