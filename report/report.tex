@@ -137,6 +137,8 @@ Pick a node's nearest available neighbour as the next node in the tour.
 
 Once all nodes have been visited the tour is complete.
 
+\subsection{}
+
 \subsection{Local optimization algorithms}
 When a tour has been calculated, we can apply local optimization techniques by examining parts of the tour. We are not guaranteed to find optimal solutions by iterating these indefinitely since they can get stuck in local minimums, but used correctly they can provide significant improvements.
 
@@ -172,8 +174,29 @@ This leaves four different configurations involving modification of all three ed
 The difference in distance is calculated for each configuration and compared to the others.
 If a configuration leads to a better distance than the original and all the other configuration the swap is performed.
 
-<pic>
-    
+% <pic> Orkar vi? :p Man kan nästan hänvisa till 2-opt.
+
+
+\subsection{Iterative improvement}
+A significant problem with local optimization techiques is the posibility of reaching a local minimum which is suboptimal.
+One solution to this is to ''destroy'' the local minimum by swapping a few edges and performing the local search again.
+This can help the solution to break away from the local minimum and achieve a better result.
+
+There are several iterative methods that do this, the simplest of which is the randomized iterative improvement which simply switches some random edges and then performs local optimizations again, hoping to find a better result.
+
+\subsubsection{Lin Kernighan}
+Lin Kernighan \cite{LK} is a more structured iterative method which restricts which edges we can swap. 
+The original algorithm performs a restricted 2-opt at each step. This step is then iterated while swapping edges after each step. The restriction on the edges to swap is the following:
+
+The \textbf{one-tree restriction}:
+The length of the spanning tree plus one edge (one-tree) obtained by adding an edge must be less than the length of the best tour so far. \cite{LK2}
+
+All k-opts performed are limited using neighbour lists. Neighbour lists are short sorted lists of each node's closest neighbours. When using neighbour lists, only a small combination of cities are checked, but they often provide good estimates of good paths between cities and the trade-off is often worth it in practice.
+
+Lin Kernighan also uses tabu lists which are lists of edges that may not be inserted/removed. How such tabu's are selected varies, but the general idea is to not remove edges that improve the tour, and not reinsert edges that worsen the tour.
+
+
+
 
 %----------------------------------------------------------------------------------------
 % SECTION 3
@@ -183,9 +206,24 @@ The program was implemented in the C programming language.
 
 The nearest neighbour algorithm was used to calculate a first naive solution upon which local search optimizations could be made.
 Most of the loops over nodes start with a random node, since it yielded improved results.
+The program uses a randomized iterative method.
+
+The general outline of the program is:
+
+\begin{verbatim}
+do {
+  NN
+  2-opt
+  2.5-opt
+  save result
+  swap randomly selected edges
+} (while improvement)
+\end{verbatim}
+
+
 \subsection{Neighbour lists}
-Lists of every nodes closest neighbours were calculated at the start in order to speed up certain algorithms.
-The Nearest Neighbour algorithm took advantage of this, as did 2.5-opt. When using neighbour lists, only a small combination of cities is checked, but they often provide good estimates of good paths between cities and the trade-off is often worth it in practice.
+Lists of every node's closest neighbours were calculated at the start in order to speed up certain algorithms.
+The Nearest Neighbour algorithm took advantage of this, as did 2.5-opt.
 
 \subsection{Satellite lists}
 In order to effectively perform the local optimizations a specialized data structure is required.
@@ -234,8 +272,6 @@ Using this structure, we can infer the following:\\
 Note that the above image is a depiction of a possible (starting) configuration. The ''satellites'' (indexes 0-9) can point to any other index in the array.
 
 \subsection{Opts}
-All k-opt optimizations had the possibility to randomize their starting point.
-
 The 2-opt algorithm have a complexity of O($n^2$), since we try every possible edge pair.
 
 2.5-opt was implemented using neighbour lists.
@@ -246,16 +282,12 @@ However, the implementation in our best version had an O($n^2$) algorithm due to
 The bug caused it to try one edge as the third one, which was the one directly following the second edge.
 When the bug was fixed the result worsened, probably due to the increased complexity.
 
-\subsection{Introducing randomness}
-A significant problem with local optimization techiques is the posibility of reaching a local minimum which is suboptimal.
-One solution to this is to ``destroy'' the local minimum by swapping a few random edges and performing the local search again.
-This can help the solution to break away from the local minimum and achieve a better result.
-This cycle of introducing randomness and performing local optimization can be repeated indefinitely providing that the best solution is always saved.
 
 %------------------------------------------------------------------------------
 %   SECTION 4
 %-------------------------------------------------------------------------------
-
+% OBS: newpage needed for table to float correctly. Might remove later!
+\newpage
 \section{Results}
 
 Every algorithm led to improvements, and 
@@ -276,8 +308,6 @@ Every algorithm led to improvements, and
   \end{table}
 
 \textsuperscript{*}Kattis ID for the best submission: \href{https://kth.kattis.scrool.se/submission?id=469874}{469874}
-
-% TODO: skriva om storlek på neighbour lists!!! 30-40 är bäst för största indatan!
 
 Experiments showed that small neighbour lists gave the best results. Since they need to be sorted they can be expensive to create, and there is therefore an equilibrium to be found where the trade-off is optimal. We didn't try different sizes extensively, but our tests showed that neighbour lists of length 20-40 gave us the best trade-off.
 
@@ -302,9 +332,7 @@ The satellite lists required us to think carefully when changing the tour.
 \subsection{Future work}
 
 Given more time we would have liked to implement a k-level tree, or a k-level satellite tree.
-A k-level tree enables O($\log{n}$) traversal time, which would have allowed us to theoretically speed up both 2-opt and 3-opt with the usage of neighbour lists.
-
-Using k-level trees we could have used stem-and-cycle ejection chain algorithms, which are said to be the best known local search methods for TSP.\cite{stem-cycle}
+A k-level tree enables O($\log{n}$) traversal time, which would have allowed us to theoretically speed up both 2-opt and 3-opt with the usage of neighbour lists. And with neighbour lists, Lin Kernighans iterative method could have been used as well. Using k-level trees we could also have used stem-and-cycle ejection chain algorithms, which are said to be the best known local search methods for TSP.\cite{stem-cycle}
 
 There are also some interesting Ant Colony Optimization (ACO) algorithms that shows promise. These algorithms are a fun concept, and given more time we would have investigated this approach further. \cite{ACO}
 % OBS: ACO-källan gäller probabilistisk TSP (annan sorts TSP), men källan gäller egentligen bara konceptet.
@@ -328,6 +356,12 @@ There are also some interesting Ant Colony Optimization (ACO) algorithms that sh
 \bibitem{stem-cycle} Harabor, Daniel, and Philip Kilby. "Informed Heuristics for Guiding Stem-and-Cycle Ejection Chains." arXiv preprint arXiv:1103.3904 (2011).
 
 \bibitem{ACO} Bianchi, Leonora, Luca Maria Gambardella, and Marco Dorigo. "An ant colony optimization approach to the probabilistic traveling salesman problem." Parallel Problem Solving from Nature—PPSN VII. Springer Berlin Heidelberg, 2002. 883-892.
+
+\bibitem{LK} Scharpff, Joris, Adriana Suson, and Jip Man Vuong. "Traveling Sales Man Problem (TSP)." (2009).
+
+\bibitem{LK2} Aarts, EH Emile HL, and Jan K. Lenstra, eds. Local search in combinatorial optimization. Princeton University Press, 1997.
+
 \end{thebibliography}
+
 
 \end{document}
