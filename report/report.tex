@@ -183,7 +183,7 @@ The program starts with a Nearest neighbour search, giving us a starting point f
 Most of the loops over nodes start with a random node, since it yielded improved results.
 \subsection{Neighbour lists}
 Lists of every nodes closest neighbours were calculated at the start in order to speed up certain algorithms.
-The Nearest Neighbour algorithm took advantage of this, as did 2.5-opt. When using neighbour lists, only a small combination of cities is checked, but they often provide good estimates of good paths between cities and the tradeoff is often worth it in practice.
+The Nearest Neighbour algorithm took advantage of this, as did 2.5-opt. When using neighbour lists, only a small combination of cities is checked, but they often provide good estimates of good paths between cities and the trade-off is often worth it in practice.
 
 \subsection{Satellite lists}
 In order to effectively perform the local optimizations a specialized data structure is required.
@@ -277,6 +277,7 @@ Every algorithm led to improvements, and
 
 % TODO: skriva om storlek på neighbour lists!!! 30-40 är bäst för största indatan!
 
+Experiments showed that small neighbour lists gave the best results. Since they need to be sorted they can be expensive to create, and there is therefore an equilibrium to be found where the trade-off is optimal. We didn't try different sizes extensively, but our tests showed that neighbour lists of length 20-40 gave us the best trade-off.
 
 
 
@@ -296,12 +297,15 @@ All concepts and algorithms used are relatively easy to understand, but they bec
 The satellite lists required us to think carefully when changing the tour.
 
 
+\subsection{Future work}
+
 Given more time we would have liked to implement a k-level tree, or a k-level satellite tree.
 A k-level tree enables O($\log{n}$) traversal time, which would have allowed us to theoretically speed up both 2-opt and 3-opt with the usage of neighbour lists.
 
 Using k-level trees we could have used stem-and-cycle ejection chain algorithms, which are said to be the best known local search methods for TSP.\cite{stem-cycle}
 
-\dots
+There are also some interesting Ant Colony Optimization (ACO) algorithms that shows promise. These algorithms are a fun concept, and given more time we would have investigated this approach further. \cite{ACO}
+% OBS: ACO-källan gäller probabilistisk TSP (annan sorts TSP), men källan gäller egentligen bara konceptet.
 
 % Avsluta med något om hur nöjda vi är?
 
@@ -320,6 +324,8 @@ Using k-level trees we could have used stem-and-cycle ejection chain algorithms,
 \bibitem{satellite} Osterman, Colin, et al. \emph{The satellite list and new data structures for symmetric traveling salesman problems.} (2004).
 
 \bibitem{stem-cycle} Harabor, Daniel, and Philip Kilby. "Informed Heuristics for Guiding Stem-and-Cycle Ejection Chains." arXiv preprint arXiv:1103.3904 (2011).
+
+\bibitem{ACO} Bianchi, Leonora, Luca Maria Gambardella, and Marco Dorigo. "An ant colony optimization approach to the probabilistic traveling salesman problem." Parallel Problem Solving from Nature—PPSN VII. Springer Berlin Heidelberg, 2002. 883-892.
 \end{thebibliography}
 
 \end{document}
