@@ -248,7 +248,7 @@ They point to satellites of other nodes, one pointing to a satellite which belon
 The satellites only point to other satellites pointing in the same direction as them.
 This creates two ``flows'' in the satellite list, which are independent from each other but linked in that they are each others reverse.
 
-A satellite list can easliy be implemented using a doubly sized array.
+A satellite list can easily be implemented using a doubly sized array.
 Each index corresponds to a satellite, and satellites are grouped in pairs by node.
 The value at an index is the index of the satellite that the current satellite points to.
 
