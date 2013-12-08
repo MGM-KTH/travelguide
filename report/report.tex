@@ -143,8 +143,6 @@ Every node is marked as visited once it has been used so the tour doesn't revisi
 
 Once all nodes have been visited the tour is complete.
 
-\subsection{}
-
 \subsection{Local optimization algorithms}
 When a tour has been calculated, we can apply local optimization techniques by examining parts of the tour. We are not guaranteed to find optimal solutions by iterating these indefinitely since they can get stuck in local minimums, but used correctly they can provide significant improvements.
 
@@ -253,7 +251,7 @@ Each index corresponds to a satellite, and satellites are grouped in pairs by no
 The value at an index is the index of the satellite that the current satellite points to.
 
 This structure provides the ability to reverse a subtour in O(1) time.
-One simply relink the satellites so that the ``forward'' flow links in to the ``reverse'' flow at the end of the subsection, and then link back to the forward flow at the other end.
+One simply relink the satellites so that the ''forward'' flow links in to the ''reverse'' flow at the end of the subsection, and then link back to the forward flow at the other end.
 This operation is mirrored for the complement satellites.
 
 
@@ -322,8 +320,6 @@ Every algorithm led to improvements, and
 \textsuperscript{**}Kattis ID for the best submission: \href{https://kth.kattis.scrool.se/submission?id=471066}{471066}
 
 Experiments showed that small neighbour lists gave the best results. Since they need to be sorted they can be expensive to create, and there is therefore an equilibrium to be found where the trade-off is optimal. We didn't try different sizes extensively, but our tests showed that neighbour lists of length 20-40 gave us the best trade-off.
-
-
 
 
 \section{Discussion}
