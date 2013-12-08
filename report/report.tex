@@ -201,6 +201,10 @@ The below image illustrates the concept:
 \includegraphics[scale=0.4]{25opt}
 \end{center}
 
+2.5-opt is one possible 3-opt move, where one of the tour fragments considered is a single city.
+The 2.5-opt search can be incorporated in a 2-opt search by examining corresponding 2.5-opt moves for 2-opt candidates. 
+\cite{two_point_five}
+
 
 \subsection{Iterative improvement}
 A significant problem with local optimization techiques is the posibility of reaching a local minimum which is suboptimal.
@@ -249,6 +253,7 @@ do {
 
 return best tour
 \end{verbatim}
+
 
 \subsection{Neighbour lists}
 Lists of every node's closest neighbours were calculated at the start in order to speed up certain algorithms.
@@ -316,10 +321,9 @@ When the bug was fixed the result worsened, probably due to the increased comple
 %   SECTION 4
 %-------------------------------------------------------------------------------
 % OBS: newpage needed for table to float correctly. Might remove later!
-\newpage
 \section{Results}
 
-Every algorithm led to improvements, and 
+Every algorithm led to improved scores. The below table shows the development as more features were added.
 
 \begin{table}[h]
   \centering
@@ -355,8 +359,7 @@ The drawback of using a satellite list is that we can't know the direction of a 
 This means that two randomly chosen nodes can't be used directly when reversing a subtour since we won't know which satellites should be remapped and to where in order to retain flow integrity.
 This caused problems with neighbour lists since this means that we can't use them where swapping is needed without introducing the overhead of traversing the entire tour to find their orientation. However, both Nearest Neighbour and 2.5-opt was able to utilize neighbour lists since there is no subtour reversal involved in these algorithms.
 
-Considering the fact that we did not have a tree structure we are satisfied with the results of our local optimizations. It was unexpected that a trivial 3-opt would have time to run on larger instances, but as it turns out we got our best results when using it for all tour lengths.
-
+Considering the fact that we did not have a tree structure we are satisfied with the results of our local optimizations. It was unexpected that a trivial 3-opt would have time to run on larger instances, but restricting it to only run for certain tour lengths only worsened our results.
 
 \subsection{Future work}
 
@@ -389,6 +392,8 @@ There are also some interesting Ant Colony Optimization (ACO) algorithms that sh
 \bibitem{LK} Scharpff, Joris, Adriana Suson, and Jip Man Vuong. "Traveling Sales Man Problem (TSP)." (2009).
 
 \bibitem{LK2} Aarts, EH Emile HL, and Jan K. Lenstra, eds. Local search in combinatorial optimization. Princeton University Press, 1997.
+
+\bibitem{two_point_five} Johnson, David S., and Lyle A. McGeoch. "The traveling salesman problem: A case study in local optimization." Local search in combinatorial optimization (1997): 215-310.
 
 \end{thebibliography}
 
