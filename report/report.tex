@@ -134,9 +134,28 @@ However, the problem is still NP-hard.
 %-------------------------------------------------------------------------------
 \section{Algorithms}
 
+\subsection{Christofides}
+Christofides algorithm is an approximation algorithm for TSP instances which satisfy the triangle inequality.
+The simplest version of the algorithm is able to approxiate the cost with an over-estimate of at most 50\% (i.e. the calculated cost is at most 1.5 times the optimal cost).
+In the algorithm, the TSP instance is viewed as a complete graph $G$, where each city is a vertex. The graph is complete since each city can reach every other city in Euclidean space.
+
+The algorithm works as follows \cite{algnotes}:
+
+\begin{enumerate}[(1)]
+  \item Create a minimum spanning tree $T$ of $G$
+  \item Find a (minimal weight) perfect matching $M$ of all edges with odd degree
+  \item Combine $M$ and $T$ to get $H$
+  \item Find an Euler tour in $H$
+  \item Make the Euler tour Hamiltonian by skipping visited cities (by creating shortcuts)
+\end{enumerate}
+
+Step (4) works since $H$ only has vertices with even degree due to step (2) and (3) which converts all odd-degree vertices to even-degree vertices. It is a known fact that such a graph has an Euler tour.
+
+The cost of the minimum spanning tree is at most the optimal cost, and the cost of the matching $M$ is at most half of the optimal cost. Hence, the total cost of the constructed tour is at most 1.5 times the optimal cost. \cite{algnotes}
+
 \subsection{Nearest neighbour}
-The nearest neighbour (NN) algorithm is a greedy strategy.
-It is very unlikely that it will return the optimal solution, but it finds an approximated solution in reasonable time.
+The nearest neighbour (NN) algorithm is a greedy strategy. It is much faster than Christofides due to its simplicity, but there are no guarantees that the approximation will be good.
+
 The heuristic works as follows: 
 Pick a node's nearest available neighbour as the next node in the tour.
 Every node is marked as visited once it has been used so the tour doesn't revisit any nodes.
@@ -156,6 +175,18 @@ At this point the subpath from B to C should be reversed, so that it is traverse
 \includegraphics[scale=0.4]{2opt}
 \end{center}
 
+
+\subsection{3-opt}
+3-opt works similarly to 2-opt, the difference being that three edges are chosen for swapping instead of two.
+Given three edges A-B, C-D and E-F there are 8 unique configurations involving the nodes, of which one is the original configuration.
+Three configurations are covered by the 2-opt algorithm, since they only modify two of the three edges.
+This leaves four different configurations involving modification of all three edges.
+The difference in distance is calculated for each configuration and compared to the others.
+If a configuration leads to a better distance than the original and all the other configurations the swap is performed.
+
+% <pic> Orkar vi? :p Man kan nästan hänvisa till 2-opt. mjo iofs...
+
+
 \subsubsection{2.5-opt}
 2.5-opt, also known as 2h-opt, works as follows:
 
@@ -169,16 +200,6 @@ The below image illustrates the concept:
 \begin{center}
 \includegraphics[scale=0.4]{25opt}
 \end{center}
-
-\subsection{3-opt}
-3-opt works similarly to two opt, the difference being that three edges are chosen for swapping instead of two.
-Given three edges A-B, C-D and E-F there are 8 unique configurations involving the nodes, of which one is the original configuration.
-Three configurations are covered by the 2-opt algorithm, since they only modify two of the three edges.
-This leaves four different configurations involving modification of all three edges.
-The difference in distance is calculated for each configuration and compared to the others.
-If a configuration leads to a better distance than the original and all the other configurations the swap is performed.
-
-% <pic> Orkar vi? :p Man kan nästan hänvisa till 2-opt. mjo iofs...
 
 
 \subsection{Iterative improvement}
@@ -221,14 +242,13 @@ NN // Calculate initial tour
 do {
   2-opt
   2.5-opt
+  3-opt
   save result
   swap randomly selected edges
 } while (not out of time)
 
 return best tour
 \end{verbatim}
-
-
 
 \subsection{Neighbour lists}
 Lists of every node's closest neighbours were calculated at the start in order to speed up certain algorithms.
@@ -321,20 +341,21 @@ Every algorithm led to improvements, and
 
 Experiments showed that small neighbour lists gave the best results. Since they need to be sorted they can be expensive to create, and there is therefore an equilibrium to be found where the trade-off is optimal. We didn't try different sizes extensively, but our tests showed that neighbour lists of length 20-40 gave us the best trade-off.
 
+Our program first performed 2-opt, then 2.5-opt and finally 3-opt. We also tried removing 2.5-opt completely, and mixing the order of execution, but we achieved the best results when simply running them in ascending order.
+
+2-opt often reached a local minimum after 5 iterations, and was therefore limited to about 5 iterations.
+2.5-opt reached a local minimum quickly and could therefore be run indefinitely, or with a small limit of 2-4 iterations.
 
 \section{Discussion}
 
-% Nåt generellt om projektet kanske. 
+All concepts and algorithms used are relatively easy to understand, but they became harder to implement with satellite lists.
+The satellite lists required us to think carefully when changing the tour.
 
 The drawback of using a satellite list is that we can't know the direction of a city's satellites relative to another city without traversing the subtour between them.
 This means that two randomly chosen nodes can't be used directly when reversing a subtour since we won't know which satellites should be remapped and to where in order to retain flow integrity.
-This caused problems with neighbour lists since this means that we can't use them where swapping is needed without introducing the overhead of traversing the entire tour to find their orientation.
+This caused problems with neighbour lists since this means that we can't use them where swapping is needed without introducing the overhead of traversing the entire tour to find their orientation. However, both Nearest Neighbour and 2.5-opt was able to utilize neighbour lists since there is no subtour reversal involved in these algorithms.
 
-However, both Nearest Neighbour and 2.5-opt was able to utilize neighbour lists since there is no subtour reversal involved in these algorithms.
-
-% Nåt om satellite antar jag. Dom är lite dryga.
-All concepts and algorithms used are relatively easy to understand, but they became harder to implement with satellite lists.
-The satellite lists required us to think carefully when changing the tour.
+Considering the fact that we did not have a tree structure we are satisfied with the results of our local optimizations. It was unexpected that a trivial 3-opt would have time to run on larger instances, but as it turns out we got our best results when using it for all tour lengths.
 
 
 \subsection{Future work}
